@@ -57,8 +57,8 @@ Okapiは、マイクロサービスアーキテクチャに一般的に使用さ
 概念的には、APIゲートウェイは、システムの単一のエントリーポイントとなるサーバーです。
 これはオブジェクト指向デザインの[ファサードパターン]（http://en.wikipedia.org/wiki/Facade_pattern）
 と同様です。
-Okapiが非常に厳密に従っている[標準定義]（https://www.nginx.com/blog/building-microservices-using-an-api-gateway/）によると、
-API Gatewayは、内部システムのアーキテクチャをカプセル化し、
+Okapiが非常に厳密に従っている[標準定義]（https://www.nginx.com/blog/building-microservices-using-an-api-gateway/）
+によると、API Gatewayは、内部システムのアーキテクチャをカプセル化し、
 各クライアントに合わせた、統合されたAPIを提供します。
 次のコアの役割も含まれるでしょう。
 認証、監視、ロードバランシング、キャッシング、リクエストの整形と管理、
@@ -83,120 +83,107 @@ OkapiコアWebサービスをコールすることで、新しいサービス（
 
 ## Architecture
 
-Web service endpoints in Okapi can be, roughly, divided into two
-parts: (1) general module and tenant management APIs, sometimes
-referred to as 'core' -- initially part of Okapi itself but potentially
-separable into their own services -- and (2) endpoints for accessing
-module-provided, business-logic specific interfaces, e.g. Patron
-management or Circulation. This document will discuss the former in
-detail and offer a general overview of allowed formats and styles for
-the latter.
+OkapiのWebサービス・エンドポイントは、おおよそ2つに分けられます：
+（1）時に「コア」と呼ばれる一般モジュールとテナント管理API - 当初はOkapi自体の一部でしたが、独立したサービスになるかもしれません
+（2）モジュールが提供するビジネスロジック特有のインターフェースにアクセスするためのエンドポイント
+例：パトロン管理またはサーキュレーション。 
+このドキュメントでは、前者の詳細と、後者の許可されたフォーマットとスタイルの一般的な概要を提供します。
 
-The specification of the core Okapi web services, in its current form,
-is captured in [RAML](http://raml.org/) (RESTful API Modeling
-Language). See the [Reference](#web-service) section.  The
-specification, however, aims to make very few assumptions about the
-actual API endpoints exposed by specific modules, which are basically
-left undefined.  The goal is to allow for different styles and formats
-of those APIs (RESTful vs RPC and JSON vs XML, etc.) with only the
-basic requirement of a common transport protocol (HTTP). It is
-envisioned that the transport protocol assumption may be lifted or
-worked around for some special cases (e.g. the ability to integrate
-non-HTTP, binary protocols, such as a truly asynchronous protocol for
-operation similar to a message queue).
+現在のフォームでは、コアなOkapiウェブサービスの仕様は、[RAML]（http://raml.org/）
+（RESTful APIモデリング言語）を取り込んでいます。 [参考文献]（＃web-service）セクションを参照してください。 
+
+しかし、この仕様では、特定のモジュールによって公開される実際のAPIエンドポイントについてはアサンプションをほとんどたてておらず、
+基本的に未定義にしています。 目標は、共通トランスポートプロトコル（HTTP）の基本要件のみで、
+それらのAPI（RESTful vs RPCとJSON vs XMLなど）のさまざまなスタイルとフォーマットを許可することです。
+
+いくつかの特殊なケース（例えば、メッセージキューと同様の動作のための真の非同期プロトコルのようなバイナリプロトコルなど、
+非HTTPを統合する能力）に関して、トランスポートプロトコルのアサンプションは解除されるか、回避されることが思い描かれています。
+
 
 ### Okapi's own Web Services
 
-As mentioned, Okapi's own web services provide the basic functionality
-to set up, configure and enable modules and manage tenants. The core
-endpoints are:
+前述のように、Okapi独自のWebサービスはモジュールの設定、構成、有効化、テナントの管理のための基本的な機能を提供します。 
+コア・エンドポイントは次のとおりです。
 
  * `/_/proxy`
  * `/_/discovery`
  * `/_/deployment`
  * `/_/env`
 
-The special prefix `/_` is used to to distinguish the routing for Okapi
-internal web services from the extension points provided by modules.
+特別な接頭辞 `/_` はモジュールによって提供される拡張ポイントから
+Okapi内部のWebサービスへのルーティングを区別するために利用されます。
 
- * The `/_/proxy` endpoint is used for configuring the proxying service:
-   specifying which modules we know of, how their requests are to be
-   routed, which tenants we know about, and which modules are enabled for
-   which tenants.
+ *  `/_/proxy` エンドポイントはプロキシサービスの設定に使用されます：
+    私たちが知っているモジュール、リクエストがどのようにルーティングされるべきか、
+    私たちが知っているテナント、どのモジュールがどのテナントで有効になっているかを特定します。
+    
+ * `/ _ / discovery`エンドポイントは、クラスタ上のサービスIDからネットワークアドレスへのマッピングを管理します。
+    情報がそこにポストされ、プロキシサービスがそれを照会して、必要なモジュールが実際に利用可能な場所を見つけます。 
+    また、モジュールを一気にデプロイしてレジスターするためのショーカットを提供します。
+    クラスタ内のノードを全てカバーする検出エンドポイントは1つしかありません。
+    ディスカバリ・サービスへのリクエストはモジュールを特定のノード上にデプロイすることもできます。そのため、
+    デプロイを直接呼び出すことが必要になることはほとんどありません。
 
- * The `/_/discovery` endpoint manages the mapping from service IDs to network
-   addresses on the cluster. Information is posted to it, and the proxy service
-   will query it to find where the needed modules are actually available. It also
-   offers shortcuts for deploying and registering a module in one
-   go. There is only a single discovery endpoint covering all of the
-   nodes in a cluster. Requests to the discovery service can also deploy
-   modules on specific nodes, so it is rarely necessary to invoke
-   deployment directly.
+ * `/ _ / deployment`エンドポイントはモジュールの配備を担当します。
+    クラスタ化された環境では、各ノードで実行されているデプロイメント・サービスは一つであるべきです。
+    そのノードでプロセスを開始し、さまざまなサービスモジュールにネットワークアドレスを割り当てる役割を担います。
+    これは、ほとんどがディスカバリ・サービスによって内部で利用されますが、
+    一部のクラスタ管理システムはそれを利用することができるように開かれています。
 
- * The `/_/deployment` endpoint is responsible for deploying modules.
-   In a clustered environment there should be one instance of the
-   deployment service running on each node. It will be responsible
-   for starting processes on that node, and allocating network addresses
-   for the various service modules. It is mostly used internally, by the
-   discovery service, but is left open in case some cluster management
-   system could make use of it.
+ * `/ _ / env`エンドポイントは、デプロイ時にモジュールに渡されるシステム全体のプロパティである
+    環境変数を管理するために使用されます。
 
- * The `/_/env`  endpoint is used to manage environment variables -- system-wide
-   properties that are passed to modules during deployment.
-
-These four parts are coded as separate services, so that it will be possible
-to use alternative deployment and discovery methods, if the chosen clustering
-system offers such.
+これら4つの部分は別々のサービスとして実装されています。
+そのため、代替のデプロイとディスカバリー方法を使用することが可能です。
+もし選択したクラスタリングシステムがそのような方法を提供しているのであれば。
 
 ![Module Management Diagram](module_management.png "Module Management Diagram")
 
 #### What are 'modules'?
 
-Modules in the Okapi ecosystem are defined in terms of their _behavior_
-(or, in other words, _interface contract_)  rather than their _contents_,
-meaning there is no exact definition of a module as a package or an archive,
-e.g. with the underlying file structure standardized.
-Those details are left to the particular module implementation (as noted
-before, Okapi server-side modules can utilize any technology stack).
+Okapiエコシステム内のモジュールは、コンテンツよりもふるまい（つまり、_interface contract_の観点から定義されます。
+パッケージまたはアーカイブとしてのモジュールの正確な定義がないことを意味しています。
+例えば、基礎となる標準化されたファイル構造があること。
+これらの詳細は特定のモジュール実装に委ねられています（前述の通り、
+Okapiのサーバー側モジュールは、あらゆるテクノロジー・スタックを利用できます）。
 
-Hence any piece of software that manifests the following traits can become
-an Okapi module:
+したがって、以下の特性が明らかになっているソフトウェアは、Okapiモジュールになり得ます：
 
-* It is an HTTP network server that communicates using a REST-styled
-web service protocol -- typically, but not necessarily, with a JSON payload.
+* RESTスタイルのWebサービス・プロトコル（通常は、必須ではありませんが、JSONペイロードを使用します）を利用するHTTPネットワークサーバーであること。
 
-* It comes with a descriptor file, namely the
-[`ModuleDescriptor.json`](../okapi-core/src/main/raml/ModuleDescriptor.json), which
-declares the basic module metadata (id, name, etc.), specifies the module's dependencies
-on other modules (interface identifiers to be precise), and reports all
-"provided" interfaces.
+* デスクリプタ・ファイル、すなわち
+[`ModuleDescriptor.json`]（../ okapi-core / src / main / raml / ModuleDescriptor.json）、
+これはモジュールの基本的なメタデータ（id、nameなど）を宣言し、
+モジュールの他のモジュール（正確にはインタフェース識別子）との依存関係を指定し、
+すべての"提供された"インターフェースにレポートすること。
 
-* `ModuleDescriptor.json` has a list of all `routes` (HTTP paths and methods)
-that a given module handles, this gives Okapi necessary information to proxy
-traffic to the module (this is similar to a simplified RAML specification).
+* `ModuleDescriptor.json` がすべての `routes` (HTTP パスとメソッド)のリストを持っていること。
+ルートは与えられたモジュールがハンドルすることで、モジュールへトラフィックをプロキシするために必要な情報をOkapiに提供します。
+(これは単純化されたRAML仕様と同様です。)
 
-* It follows versioning rules defined in the chapter
+* この章で定義されているバージョン管理規則に従っていること。
 [_Versioning and Dependencies_](#versioning-and-dependencies).
 
-* WIP: it provides interfaces required for monitoring and instrumentation.
+* WIP: 監視と計装に必要なインタフェースを提供すること。
 
-As you can see, none of those requirements specifically state rules for
-deployment and, as such, it would be entirely possible to integrate
-a third party web service (e.g. the API of a publicly accessible Internet server)
-as an Okapi module. That is, assuming the endpoint style and versioning
-semantics are a close match for what is required in Okapi, and a
-suitable module descriptor can be written to describe it.
+ご覧のとおり、これらの要件のいずれもデプロイメントのルールを明確に述べているわけではありません。
+そのため、第三者ウェブサービス（例えば、公的にアクセス可能なインターネットサーバのAPI）
+をOkapiモジュールとして統合することが完全に可能となります。
 
-Okapi, however, includes additional services (for service deployment and
-discovery) that allows it to execute, run and monitor services natively
-on a cluster that it manages. Those _native modules_ require an additional
-descriptor file, the
-[`DeploymentDescriptor.json`](../okapi-core/src/main/raml/DeploymentDescriptor.json),
-which specifies the low-level information about how to run the module. Also,
-native modules must be packaged according to one of the packaging options
-supported by Okapi's deployment service: at this point that means providing
-the executable (and all dependencies) on each node or using on a self-contained
-Docker image to distribute the executable from a centralized place.
+つまり、エンドポイントスタイルの過程を立てることと、バージョン管理の
+セマンティクスは、Okapiで必要とされるものによく似ています。
+それを記述するのに適切なモジュール記述子を書くことができます
+
+ただし、Okapiには、自身が管理するクラスタ上で、Okapiがサービスのネイティブな起動、実行、監視を可能にする
+追加のサービスが含まれています（サービス・デプロイメントとディスカバリー）
+
+それらの_ネイティブモジュール_初以下の記述子ファイル
+[`DeploymentDescriptor.json`]（../ okapi-core / src / main / raml / DeploymentDescriptor.json）を必要します。
+これはモジュールの実行方法に関する低いレベルの情報を指定します。 
+また、ネイティブ・モジュールは、Okapiのデプロイメント・サービスでサポートされている
+パッケージオプションの1つに従ってパッケージ化する必要があります：
+この時点では、各ノードの実行可能ファイル（およびすべての依存ファイル）または自己完結型
+Dockerイメージを使用して、中央から実行可能ファイルを配布します。
 
 
 #### API guidelines
