@@ -175,7 +175,7 @@ Okapiのサーバー側モジュールは、あらゆるテクノロジー・ス
 それを記述するのに適切なモジュール記述子を書くことができます
 
 ただし、Okapiには、自身が管理するクラスタ上で、Okapiがサービスのネイティブな起動、実行、監視を可能にする
-追加のサービスが含まれています（サービス・デプロイメントとディスカバリー）
+追加のサービスが含まれています（サービス・デプロイメントとディスカバリー）。
 
 それらの_ネイティブモジュール_初以下の記述子ファイル
 [`DeploymentDescriptor.json`]（../ okapi-core / src / main / raml / DeploymentDescriptor.json）を必要します。
@@ -188,16 +188,15 @@ Dockerイメージを使用して、中央から実行可能ファイルを配�
 
 #### API guidelines
 
-Okapi's own web services must, and other modules should, adhere to these
-guidelines as far as practically possible.
+Okapiの独自のWebサービスは必須で、その他のモジュールは推奨として、
+実際に可能な限りこれらのガイドラインに準拠する必要があります。
 
- * No trailing slashes in paths
- * Always expect and return proper JSON
- * The primary key should always be called 'id'
+ * パスの後続のスラッシュは書かないこと
+ * 常に適切なJSONを期待して返す
+ * 主キーは常に 'id'と呼ばれるべきである
 
-We try to make the Okapi code exemplary, so that it would serve well as
-an example for other module developers to emulate.
-
+私たちは、Okapiのコードを模範的なものにすることで、
+他のモジュール開発者がエミュレートする例としようとしています。
 
 #### Core Okapi Web Service Authentication and Authorization
 
