@@ -200,70 +200,63 @@ Okapiの独自のWebサービスは必須で、その他のモジュールは推
 
 #### Core Okapi Web Service Authentication and Authorization
 
-Access to the core services (all resources under the `/_/` path) is
-granted to the Service Provider (SP) administrator, as the
-functionality provided by those services spans multiple tenants. The
-details of authentication and authorization of the SP administrators
-are to be defined at a later stage and will most likely be provided by
-an external module that can hook into a specific Service Provider
-authentication system.
+コアサービス（ `/ _ /`パスの下のすべてのリソース）へのアクセスはサービスプロバイダ（SP）管理者に付与されます。
+これらのサービスが提供する機能は、複数のテナントにまたがっているためです。
+
+SP管理者の認可と認証の詳細は後の段階で定義されるべきであり、
+特定のサービスプロバイダの認証システムにフックできる外部モジュールによって提供される可能性が高いです。
 
 ### Deployment and Discovery
 
-Making a module available to a tenant is a multi-step process. It can be done
-in a few different ways, but the most usual process is:
+複数のステップからなるプロセスによって、テナントがモジュールを利用できるようになります。
+いくつかの異なる方法で実行されますが、最も一般的なプロセスは次のとおりです:
 
- * We POST a ModuleDescriptor to `/_/proxy` , telling Okapi that we know of
-such module, what services it offers, and what it depends on.
- * We POST to `/_/discovery` that we want to have this module running on a
-given node, and it will tell the deploy service on that node to start the
-necessary processes.
- * We enable the module for a given tenant.
+ * ModuleDescriptorを `/ _ / proxy`にポストし、私たちがそのようなモジュールについて知っていること、
+ それが提供するサービス、およびそれが依存するものをOkapiに伝えます。
 
-We assume some external management program will be making these requests.  It
-can not be a proper Okapi module itself, because it needs to be running before
-any modules have been deployed. For testing, see
-the curl command-line [examples](#using-okapi) later in this document.
+ * `/ _ / discovery`に、任意のノードで実行したいモジュールにPOSTし、
+ そのノードのデプロイ・サービスに必要なプロセスを開始するように伝えます。
 
-An alternative way is to not pass the Module ID to the Discovery, but to pass
-a complete LaunchDescriptor. The ModuleDescriptor may not even have a
-LaunchDescriptor in this case. This can be useful if running on a cluster where
-the nodes are quite different, and you want to specify exactly where the files
-are to be found. This is not the way we imagine Okapi clusters to run, but we
-want to keep the option open.
+ * 特定のテナントに対してモジュールを有効にします。
 
-Another alternative is to go to an even lower level, and POST the
-LaunchDescriptor directly to the `/_/deployment` on any given node. This means
-that the management software has to talk directly to individual nodes, which
-raises all kind of questions about firewalls etc. But it allows full control,
-which can be useful in some unusual clustering setups. Note that you still need
-to post a ModuleDescriptor to `/_/proxy` to let Okapi know about the module, but
-that the `/_/deployment` will inform `/_/discovery` of the existence of the
-module it has deployed.
+外部の管理プログラムがこれらの要求を行うと仮定しています。 
+適切なOkapiモジュールそのものではありえません。なぜならモジュールがデプロイされる前に実行される必要があるからです。
+テストについては、本書の後半にあるcurlコマンドライン[examples]（＃using-okapi）を参照してください。
 
-Of course, you do not have to use Okapi to manage deployments at all, you can
-POST a DeploymentDescriptor to `/_/discovery` and give a URL instead of a
-LaunchDescriptor. That tells Okapi where the service runs. It still needs a
-Service ID to connect the URL to a ModuleDescriptor that you have POSTed
-earlier. Unlike the previous examples, you need to provide a unique Instance Id
-for `/_/discovery` to identify this instance of the module. This is necessary
-because you can have the same module running on different URLs, presumably on
-different nodes inside or external to your cluster. This method can be useful
-if you make use of Okapi modules that exist outside your cluster, or if you use
-some container system, perhaps a web server where your modules live as CGI
-scripts at different URLs.
+別の方法として、モジュールIDではなく、完全なLaunchDescriptorをディスカバリーに渡す方法があります。
+この場合、ModuleDescriptorはLaunchDescriptorさえも持ちません。 
+これはかなり異なるノードのクラスターで実行されている場合や、ファイルの場所を正確に把握したい場合に便利です。
+これはOkapiクラスターの実行方法として考えている方法ではありませんが、選択肢は開かれたままにしておきたいと考えています。
 
-Note that the deployment and discovery stuff is transient, Okapi does not store
-any of that in its database. If a node goes down, the processes on it will die
-too. When it gets restarted, modules need to be deployed on it again, either via
-Okapi, or through some other means.
+もう一つの代替案はさらに低いレベルに進み、LaunchDescriptorを任意のノード上の `/_/deployment`に直接POSTすることです。
+つまり、管理ソフトウェアは個々のノードと直接話さなければいけないということですが、
+ファイアウォールなどに関するあらゆる種類の疑問が生じます。
+しかし、フルコントロールが許可されます。それにより、通常とは違ったクラスタリングの設定に役立つ可能性があります。
+それでもやはり、OKAPIにモジュールについて知らせるために、
+ModuleDescriptorを`/_/proxy`にPOSTする必要があること、
+そして`/_/deployment` が `/_/discovery`にデプロイしたモジュールを通知することに注意をしてください。
 
-The discovery data is kept in a shared map, so as long as there is one Okapi
-running on the cluster, the map will survive. But if the whole cluster is taken
-down, the discovery data is lost. It would be fairly useless at that point anyway.
+もちろん、デプロイを管理するためにOkapiを使用しなくてはならないというわけではありません。
+DeploymentDescriptorを`/_/discovery`にPOSTし、LaunchDescriptorの代わりにURLを与えてもよいです。
+それにより、Okapiにサービスが実行される場所を教えることができます。
+それでも、URLを先ほどPOSTしたModuleDescriptorに接続するためにサービスIDが必要です。
+前の例とは異なり、モジュールのこのインスタンスを特定するために、`/_/discovery`に固有のインスタンスIDを提供する必要があります。
 
-In contrast, the ModuleDescriptors POSTed to `/_/proxy` are persisted in a database.
+おそらくクラスタ内外の異なるノード上で、同じモジュールを別々のURLで動作させるために必要です。
 
+このメソッドはクラスタ外にあるOkapiモジュールを使用する場合や
+コンテナシステム、モジュールが稼働している恐らくは異なるURL上のCGIスクリプト
+を利用する場合に便利です。
+
+デプロイメントとディスカバリーの内容は一時的なものであり、Okapiはデータベース上にどちらも保存しません。
+ノードが停止すると、ノード上のプロセスも終了します。
+再起動すると、Okapi、または他の何らかの方法を経由してモジュールを再度デプロイする必要があります。
+
+ディスカバリーデータはクラスタ上で1つのOkapiが実行されている限り、共有地図に保存されているので、
+マップは存続します。 しかし、全体のクラスターがダウンすると、
+ディスカバリーデータが失われます。 とにかくそのような時には、あまり役に立たないでしょう。
+
+対照的に、 `/ _ / proxy`にPOSTされたModuleDescriptorsは、データベースに保持されます。
 
 ### Request Processing
 
