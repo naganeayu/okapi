@@ -260,54 +260,48 @@ DeploymentDescriptorを`/_/discovery`にPOSTし、LaunchDescriptorの代わり�
 
 ### Request Processing
 
-Modules can declare two kind ways to handle a request: handlers and filters.
-There should be exactly one handler for each path. That will be of `request-response`
-type by default (see below). If no handlers are found, Okapi will return a 404
-NOTFOUND.
+モジュールはリクエストを処理する2つの方法としてハンドラとフィルタを宣言することができます。
+それぞれのパスに対して正確に1つのハンドラが必要です。 それは デフォルトでは`リクエスト - レスポンス`
+タイプになるでしょう（下記参照）。 
+ハンドラが見つからない場合、Okapiは404 NOT FOUNDを返します。
 
-Each request may be passed through one or more filters. The `phase` determines
-the order in which filters are applied. At the moment that seems a bit of an
-overkill, since we have only one phase, `auth`, which will get invoked before
-the handler. It will be used for checking permissions. We assume that later we
-will introduce more phases, for example one to write an audit log after a request
-has been processed by the handler.
+各リクエストは、1つまたは複数のフィルタを通じてパスされます。 `フェーズ`は、
+フィルタが適用される順序を決めます。
+現時点では少し過剰なようですが、`auth`という、ハンドラの前に呼び出されるフェーズが一つしかありません。
+ハンドラのアクセス許可のチェックに使用されます。
+後でより多くのフェーズを導入するでしょう。
+例えば、ハンドラによって処理されたリクエストの後に監査ログを書き込むフェーズなど。
 
-(In previous versions, we had handlers and filters combined in one
-pipeline, with numerical levels for controlling the order. That was deprecated
-in 1.2, and will be dropped in version 2.0)
+（以前のバージョンでは、ハンドラとフィルタを
+順序を制御するための数値レベルを持つパイプラインに1つにまとめていました。
+それはバージョン1.2で煩わしいとされ、バージョン2.0では削除されます）
 
-The `type` parameter in the RoutingEntry in the Moduledescription controls how
-the request is passed to the filters and handlers, and how the responses are
-processed. Currently, we support the following types:
+ModuledescriptionのRoutingEntryの `type`パラメータは、
+どのようにリクエストがフィルタとハンドラに渡され、どのようにレスポンスが処理されるかを制御します。
+現在、以下のタイプをサポートしています：
 
- * `headers` -- The module is interested in headers/parameters only,
-and it can inspect them and perform an action based on the
-presence/absence of headers/parameters and their corresponding
-value. The module is not expected to return any entity in the
-response, but only a status code to control the further chain of
-execution or, in the case of an error, an immediate termination. The
-module may return certain response headers that will be merged into
-the complete response header list according to the header manipulation
-rules below.
+ * `headers` -- このモジュールはヘッダ/パラメータのみに関心があり、
+それを検査して、ヘッダ/パラメータの有無と
+それに対応する値に基づいてアクションを実行することができます。
+このモジュールは、レスポンス内にエンティティを返すことを期待されていません。
+さらなる実行のチェーンまたは、エラーの場合は、即時終了を制御するための
+ステータスコードのみを返します。
+モジュールは以下のヘッダー操作規則に従い、
+完全なレスポンスヘッダーリストにマージされるある種のレスポンスヘッダーを返すかもしれません。
 
- * `request-only` -- The module is interested in the full client
-request: header/parameters and the entity body attached to the
-request. It does not produce a modified version or a new entity in the
-response but performs an associated action and returns optional
-headers and a status code to indicate further processing or
-termination. In cases when an entity is returned, Okapi will discard
-it and continue forwarding the original request body to the subsequent
-modules in the pipeline.
+ * `request-only` -- このモジュールは完全なクライアント・リクエスト：ヘッダ/パラメータとリクエストに付けられた
+エンティティのボディーに興味があります。
+聯本巣の変更されたバージョン、または新しいエンティティを作りませんが、
+関連するアクションをおこし、追加のオプションヘッダーと、さらなる処理または終了を意味するステータスコードを返します。
+エンティティが返された場合、Okapiはそれを破棄し、
+パイプラインの続くモジュールにオリジナルのリクエストボディをフォワードし続けます。
 
- * `request-response` -- The module is interested in both
-headers/parameters and the request body. It is also expected that the
-module will return an entity in the response. This may be e.g. a
-modified request body, in which case the module acts as a filter. The
-returned response may then be forwarded on to the subsequent modules
-as the new request body. Again, the chain of processing or termination
-is controlled via the response status codes, and the response headers
-are merged back into the complete response using the rules described
-below.
+ * `request-response` -- このモジュールはヘッダー/パラメーターとリクエストボディの両方に興味があります。 
+ また、レスポンスにエンティティを返すことを期待されています。
+例えば、モジュールがフィルターとして動く場合に改変されたリクエストボディを返し、
+その後、返されたレスポンスは新しいリクエストボディとして続くモジュールにフォワードされる、などです。
+処理のチェーンまたは終了はレスポンスのステータスコードを経由して制御され、
+下記の規則を使ってレスポンスヘッダーの完全なレスポンスにマージして返します。
 
 * `redirect` -- The module does not serve this path directly, but redirects
 the request to some other path, served by some other module. This is
