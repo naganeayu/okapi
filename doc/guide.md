@@ -448,40 +448,40 @@ Okapiは、同じIDを持つすべてのモジュールが実際には同じソ�
 
 ### Security
 
-Most of the security discussion has been moved into its own document,
+セキュリティに関する議論のほとんどは、独自の文書に移行されており、
 [Okapi Security Model](security.md).
-This chapter of this Okapi Guide just provides a quick overview.
+このOkapiガイドのこの章では、簡単な概要を説明します。
 
-The security model is concerned about three things:
-* Authentication -- That we know who the user is.
-* Authorization -- That the user is allowed to make this request.
-* Permissions -- Mapping from user roles all the way down to detailed permissions
-Most of this work has been delegated to modules, so Okapi itself will not have
-to do so much work. But it still needs to orchestrate the whole operation.
+セキュリティ・モデルに重要なのは、以下の3点です:
+* Authentication（認証） -- ユーザーが誰であるかを知っています。
+* Authorization（認可） -- ユーザーがこのリクエストを行うことが許可されています。
+* Permissions（許可） -- ユーザー・ロールから詳細パーミッションまでのマッピング
 
-Ignoring all the messy details, this how it works: The client (often on a web
-browser, but can really be anything) calls the `/authn/login` service to identify
-itself. Depending on the tenant, we may have different authorization modules
-serving the `/authn/login` request, and they may take different parameters (username
-and password are the most likely, but we can have anything from simple IP
-authentication to complex interactions with LDAP, OAuth, or other systems).
+この作業のほとんどはモジュールに委託されているので、Okapi自体はそれほど多くの作業をする必要はありません。 
+しかし、それはまだ全体の操作を調整する必要があります。
 
-The authorization service returns a token to the client, and the client passes
-this token in a special header in all requests it makes to Okapi. Okapi in turn
-passes it to the authorization module, together with information of what modules
-will be called to satisfy the request, and what permissions those modules require
-and desire, and if they have special module level permissions. The authorization
-service checks the permissions. If required permissions are not there, the whole
-request is denied. If all is well, the module returns information about the
-desired permissions, and possibly special tokens to be passed to some modules.
+すべての面倒な細部を無視して、これがどのように動作するか：
+クライアント（たぶんWebブラウザ上にあるが、本当に何でもよいです）は `/ authn / login`サービスを呼び出して自分自身を識別します。
+テナントに応じて、 `/ authn / login`リクエストを扱う異なる認証モジュールを持つことができ、
+それらは異なるパラメータ（ユーザ名とパスワードが最も可能姓が高いですが、
+単純なIP認証からLDAP 、OAuth、または他のシステム）を取ることがあります。
 
-Okapi passes the request to each module in the pipeline in turn. Each of them
-get information of the desired permissions, so they can alter the behavior as
-needed, and a token that they can use for further calls.
+authorization（認証）サービスはトークンをクライアントに戻し、
+クライアントはOkapiに対して行うすべてのリクエストの中で,
+このトークンを特別なヘッダーに渡します。
+Okapiは、リクエストを満たすために呼び出されるモジュールの情報と、それらのモジュールが必要としているアクセス権と、
+特別なモジュールレベルのアクセス権を持っているかどうかの情報とともに、認可モジュールに渡します。 
+authorization（認証）サービスはpermission（許可）を検査します。 必要な権限がない場合、リクエスト全体が拒否されます。 
+すべてがうまくいけば、モジュールは必要なpermission（許可）に関する情報と、
+場合によってはいくつかのモジュールに渡される特別なトークンを返します。
 
-The trivial okapi-test-auth-module module included in the Okapi source tree does
-not implement much of this scheme. It is there just to help us test the parts
-that Okapi needs to handle.
+Okapiはリクエストをパイプラインの各モジュールに順番に渡します。 
+それぞれが必要なpermission（許可）の情報を取得するので、
+必要に応じて動作を変更できるようになります。
+また、後続の呼び出のために使用できるトークンを取得します。
+
+Okapiソースツリーに含まれる簡単なokapi-test-auth-moduleモジュールは、このスキームの多くを実装していません。 
+それはOkapiが処理する必要がある部分をテストするのに役立てるためにあります。
 
 ### Open Issues
 
