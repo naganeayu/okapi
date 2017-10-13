@@ -280,7 +280,7 @@ ModuledescriptionのRoutingEntryの `type`パラメータは、
 どのようにリクエストがフィルタとハンドラに渡され、どのようにレスポンスが処理されるかを制御します。
 現在、以下のタイプをサポートしています：
 
- * `headers` -- このモジュールはヘッダ/パラメータのみに関心があり、
+ * `headers` -- モジュールはヘッダ/パラメータのみに関心があり、
 それを検査して、ヘッダ/パラメータの有無と
 それに対応する値に基づいてアクションを実行することができます。
 このモジュールは、レスポンス内にエンティティを返すことを期待されていません。
@@ -289,50 +289,52 @@ ModuledescriptionのRoutingEntryの `type`パラメータは、
 モジュールは以下のヘッダー操作規則に従い、
 完全なレスポンスヘッダーリストにマージされるある種のレスポンスヘッダーを返すかもしれません。
 
- * `request-only` -- このモジュールは完全なクライアント・リクエスト：ヘッダ/パラメータとリクエストに付けられた
+ * `request-only` -- モジュールは完全なクライアント・リクエスト：ヘッダ/パラメータとリクエストに付けられた
 エンティティのボディーに興味があります。
 聯本巣の変更されたバージョン、または新しいエンティティを作りませんが、
 関連するアクションをおこし、追加のオプションヘッダーと、さらなる処理または終了を意味するステータスコードを返します。
 エンティティが返された場合、Okapiはそれを破棄し、
 パイプラインの続くモジュールにオリジナルのリクエストボディをフォワードし続けます。
 
- * `request-response` -- このモジュールはヘッダー/パラメーターとリクエストボディの両方に興味があります。 
+ * `request-response` -- モジュールはヘッダー/パラメーターとリクエストボディの両方に興味があります。 
  また、レスポンスにエンティティを返すことを期待されています。
 例えば、モジュールがフィルターとして動く場合に改変されたリクエストボディを返し、
 その後、返されたレスポンスは新しいリクエストボディとして続くモジュールにフォワードされる、などです。
 処理のチェーンまたは終了はレスポンスのステータスコードを経由して制御され、
 下記の規則を使ってレスポンスヘッダーの完全なレスポンスにマージして返します。
 
-* `redirect` -- The module does not serve this path directly, but redirects
-the request to some other path, served by some other module. This is
-intended as a mechanism for piling more complex modules on top of simpler
-implementations, for example a module to edit and list users could be
-extended by a module that manages users and passwords. It would have
-actual code to handle creating and updating users, but could redirect
-requests to list and get users to the simpler user module. If a handler
-(or a filter) is marked as a redirect, it must also have a redirectPath
-to tell where to redirect to.
+* `redirect` -- モジュールはこのパスを直接提供しませんが、いくつかの他のモジュールがサービスを提供している
+別のパスへリクエストをリダイレクトします。 
+これはより複雑なモジュールをより単純な実装の上に積み重ねるための
+メカニズムとして意図されています。
+例えば、ユーザを編集およびリストするためのモジュールは、
+ユーザーとパスワードを管理するモジュールによって拡張されています。
 
-Most requests will likely be of type `request-response`, which is the
-most powerful but potentially also most inefficient type, since it
-requires content to be streamed to and from the module. Where more
-efficient types can be used, they should be. For example, the
-Authentication module's permission checking consults only the headers
-of the request, and returns no body, so it is of type
-`headers`. However, the same module's initial login request consults
-the request body to determine the login parameters, and it also
-returns a message; so it must be of type `request-response`.
+それはユーザーの作成と更新を処理する実際のコードを持つでしょうが、
+ユーザをリストして取得する多めのリクエストをより単純なユーザーモジュールにリダイレクトするかもしれません。
+ハンドラ（またはフィルタ）がリダイレクトとしてマークされている場合は、
+リダイレクト先を指定するredirectPathをもっていなければなりません。
 
-Okapi has a feature where a module can exceptionally return a X-Okapi-Stop
-header, and that will cause Okapi to terminate the pipeline with the result
-this module returned. It is meant to be used sparingly, for example a module
-in a login pipeline may conclude that the user is already authorized since
-he comes from a IP address in the secure office, and abort the sequence of
-events that would lead to a login screen being displayed.
+ほとんどのリクエストは、 `request-response`タイプである可能性があります。
+最も強力ですが潜在的に最も非効率なタイプです。
+なぜなら、コンテンツをモジュールとの間でストリーミングする必要があるからです。
+もっと効率的な型を使うことができるのであれば、そうするべきでしょう。
+たとえば、認証モジュールのアクセス許可チェックでは、リクエストのヘッダーのみが参照され、
+ボディは返されません。ですので、`headers`タイプとなります。
+しかし、同じモジュールの初期ログインリクエストはログインパラメータを決定するために
+リクエストボディを参照します。そして、メッセージも返します。なので、
+ `request-response`型でなければなりません。
 
-<a id="chunked"/>Although Okapi accepts both HTTP 1.0 and HTTP 1.1 requests, it uses HTTP 1.1 with
-chunked encoding to make the connections to the modules.
+Okapiには、モジュールが例外的にX-Okapi-Stopヘッダーを返す機能があります。
+このモジュールが返す結果をもって、Okapiはパイプラインを終了させることになります。
+これは慎重に使用するように作られています。
+たとえば、ログイン・パイプラインの中のモジュールは、
+彼はセキュアなオフィスのIPアドレスから来ているため、
+ユーザがすでに認証されていると結論付け、
+ログイン画面の表示に導くイベントのシーケンスを中断するかもしれません。
 
+<a id="chunked"/>OkapiはHTTP 1.0、HTTP 1.1のどちらのリクエストも受け付けますが、
+モジュールにコネクションを作るためにチャンク・エンコーディングにはHTTP 1.1を使います。
 
 ### Status Codes
 
