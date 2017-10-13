@@ -409,42 +409,41 @@ Okapiは、モジュールがデプロイされるたびに、またモジュー
 に非常によく似ています。インターフェースのバージョンは最初の2つを利用します。
 これは実装のバージョンがないためです。
 
-The first number is the major version. It needs to be incremented whenever
-making a change that is not strictly backwards compatible, for example removing
-functionality or changing semantics.
+最初の数字がメジャーバージョンです。 
+例えば機能の削除やセマンティクスの変更など、
+厳密にバックワードの互換性があるとはいえない変更を加える際はいつも、
+この値を増やす必要があります。
 
-The second number is the minor version. It needs to be incremented whenever
-backwards-compatible changes are made, for example adding new functionality
-or optional fields.
+2番目の数字がはマイナーバージョンです。
+新しい機能やオプションのフィールドの追加など、
+バックワードの互換性がある変更を行う際はいつも、
+この値を増やす必要があります。
 
-The third number is the software version. It should be incremented on changes
-that do not affect the interface, for example fixing bugs or improving
-efficiency.
+3番目の数字がソフトウェアのバージョンです。 
+バグの修正や効率の改善など、インタフェースに影響を与えない変更をした場合に増やす必要があります。
 
-Although it is strongly recommended to use this versioning schema for all
-modules, Okapi does not enforce it for modules. The reason is that Okapi does
-not need to know anything about module versions -- it only worries about the
-interfaces being compatible.
+すべてのモジュールでこのバージョン管理スキーマを使用することを強くお勧めしますが、
+Okapiはモジュール用にこれを強制はしません。 
+その理由は、Okapiはモジュールのバージョンについて何も知る必要がないからです
+ -- 互換性のあるインターフェースについてのみを心配しています。
 
-Okapi does require that all modules that have the same id, will indeed be the
-same piece of software. We have adopted a convention of using ids that consist
-of a short name, followed by a software version. For example "test-basic-1.2.0".
+Okapiは、同じIDを持つすべてのモジュールが実際には同じソフトウェアになることを要求しています。 
+私たちは、短い名前とそれに続くソフトウェアバージョンで構成されるIDの使用規約を採用しました。 
+たとえば、 "test-basic-1.2.0"とします。
 
-When checking interface versions, Okapi will require that the major version
-number matches exactly what is required, and that the minor version is at least
-as high as required.
+インタフェースバージョンをチェックするとき、Okapiは、メジャーバージョン番号が必要なものと正確に一致し、
+マイナーバージョンが少なくとも必要なだけ高いことを要求します。
 
+モジュールがインタフェース3.2を必要とする場合、Okapiは以下を受け入れます：
+* 3.2 -- 同じバージョン
+* 3.4 -- より高いマイナーバージョン、互換性のあるインターフェース
 
-If a module requires an interface 3.2, it will accept:
-* 3.2 -- Same version
-* 3.4 -- Higher minor version, compatible interfaces
+しかし、Okapiは次を拒否します:
+* 2.2 -- より低いメジャーバージョン
+* 4.7 -- より高いメジャーバージョン
+* 3.1 -- より少ないマイナーバージョン
 
-But it will reject:
-* 2.2 -- Lower major version
-* 4.7 -- Higher major version
-* 3.1 -- Lesser minor version
-
-See further explanation of
+詳しい説明を見る
 [Version numbers](http://dev.folio.org/community/contrib-code#version-numbers).
 
 ### Security
