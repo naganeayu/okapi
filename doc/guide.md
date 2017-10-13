@@ -519,16 +519,6 @@ Okapiはパイプラインの順次実行を想定しており、
 
 #### Asynchronous messaging
 
-At present, Okapi assumes and implements HTTP as the transport
-protocol between modules, both on the front-end and within the
-system. HTTP is based on a request-response paradigm and does not
-directly include asynchronous messaging capabilities.  It is, however,
-entirely possible to model an asynchronous mode of operation on top of
-HTTP, e.g. using a polling approach or HTTP extensions like
-websockets. We anticipate that for future releases of Okapi we will
-investigate the asynchronous approach in depth and provide support for
-some open messaging protocols (e.g. STOMP).
-
 現在、Okapiは、モジュール間の転送プロトコルとして、フロントエンドとシステム内の両方でHTTPを想定し実装しています。 
 HTTPはリクエスト - レスポンスパラダイムに基づいており、非同期メッセージング機能を直接には含みません。
 しかしながら、HTTPの上で非同期動作モードをモデル化することは完全に可能です。 
@@ -537,101 +527,93 @@ HTTPはリクエスト - レスポンスパラダイムに基づいており、�
 
 ## Implementation
 
-We have a rudimentary implementation of Okapi in place. The examples below
-are supposed to work with the current implementation.
+私たちは、Okapiの基本的な実装を行っています。 以下の例は、現在の実装で動作するはずです。
 
 ### Missing features
 
- Nothing major, at this point.
+ この時点では、大きなものはありません。
 
 ## Compiling and Running
 
-The latest source of the software can be found at
+最新のソフトウェアのソースは、次の場所にあります。
 [GitHub](https://github.com/folio-org/okapi).
 
-The build requirements are:
+ビルド要件は次のとおりです。
 
  * Apache Maven 3.3.1 or later.
  * Java 8 JDK
  * [Git](https://git-scm.com)
 
-As usual, do all development and running as a regular user, not as root.
-
-So with those requirements available, now build with:
-
+いつものように、rootではなく、すべての開発と実行を通常のユーザーとして実行してください。
+したがって、これらの要件下であれば、ビルドが可能となりました：
 ```
 git clone --recursive https://github.com/folio-org/okapi.git
 cd okapi
 mvn install
 ```
-
-The install rule also runs a few tests. Tests should not fail.
-If they do then please report it, and in the meantime fall back to:
+インストールルールは、いくつかのテストも実行します。 テストは失敗しないべきです。
+もし失敗したら、それを報告してください、そして、その間にフォールバックをしてください：
 
 ```
 mvn install -DskipTests
 ```
 
-If successful, the output of `mvn install` should have this line near
-the end:
+成功した場合、  `mvn install` の終わり近くにこの行が出力されるはずです：
 
 ```
 [INFO] BUILD SUCCESS
 ```
 
-The okapi directory contains a few sub modules. These are:
+okapiディレクトリにはいくつかのサブモジュールが含まれています。 これらは：
 
- * `okapi-core` -- The gateway server itself.
- * `okapi-common` -- Utilities used by both gateway and modules.
- * `doc` -- Documentation, including this guide.
- * `okapi-test-auth-module` -- A simple module for testing authentication stuff.
- * `okapi-test-module` -- A module mangling HTTP content for test purposes.
- * `okapi-test-header-module` -- A module to test headers-only mode.
+ * `okapi-core` -- ゲートウェイサーバー自身。
+ * `okapi-common` -- ゲートウェイとモジュールの両方で使用されるユーティリティ。
+ * `doc` -- このガイドを含むドキュメント。
+ * `okapi-test-auth-module` -- 認証情報をテストするための単純なモジュール。
+ * `okapi-test-module` -- テスト目的でHTTPコンテンツをマングルするモジュール。
+ * `okapi-test-header-module` -- ヘッダーのみのモードをテストするモジュール。
 
-(Note the build order specified in the `pom.xml`:
-okapi-core must be last because its tests rely on the previous ones.)
+（ `pom.xml`で指定されたビルド順に注意してください：
+テストは以前のテストに依存しているため、okapi-coreは最後にしなければなりません。）
 
 The result for each module and okapi-core is a combined jar file
 with all necessary components combined, including Vert.x. The listening
 port is adjusted with property `port`.
 
-For example, to run the okapi-test-auth-module module and listen on port 8600, use:
+各モジュールとokapi-coreの結果は、Vert.xを含むすべての必要なコンポーネントが組み合わされたjarファイルです。 
+リスニングポートはプロパティ `port`で調整されます。
+
+たとえば、okapi-test-auth-moduleモジュールを実行してポート8600でリスンするには、次のようにします:
 
 ```
 cd okapi-test-auth-module
 java -Dport=8600 -jar target/okapi-test-auth-module-fat.jar
 ```
-
-In the same way, to run the okapi-core, specify its jar file. It is
-also necessary to provide a further command-line argument: a command
-telling okapi-core what mode to run in. When playing with okapi on a
-single node, we use the `dev` mode.
+同様に、okapi-coreを実行するには、そのjarファイルを指定します。
+okapi-coreにどのモードを実行するかを指示するコマンドで、コマンドライン引数を追加する必要もあります。
+単一のノードでokapiを再生する場合、 `dev`モードを使用します。
 
 ```
 cd okapi-core
 java -Dport=8600 -jar target/okapi-core-fat.jar dev
 ```
 
-There are other commands available. Supply `help` to get a description of
-these.
+利用可能な他のコマンドがあります。 これらの詳細は `help`で補足してください。
 
-A Maven rule to run the gateway is provided as part of the `pom.xml`,
-in the main directory.
+ゲートウェイを実行するMavenルールは、メイン・ディレクトリの `pom.xml`の一部として提供されます。
 
 ```
 mvn exec:exec
 ```
-This will start the okapi-core and make it listen on its default port: 9130.
+これでokapi-coreが起動し、デフォルトのポート：9130でリスンします。
 
-For remote debugging you can use
 ```
 mvn exec:exec@debug
 ```
-This command requires Maven >= 3.3.1. It will listen for a
-debugging client on port 5005.
+このコマンドはMaven >= 3.3.1が必要です。
+ポート5005でデバッグ・クライアントを待機します。
 
-For running in a cluster, see the [Cluster](#running-in-cluster-mode)
-example below.
+クラスタで実行する場合、下記の [Cluster](#running-in-cluster-mode)の例を参照してください。
 
 ## Using Okapi
 
