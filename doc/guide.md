@@ -502,14 +502,6 @@ Okapiは、特にビジー状態の読み取りが重いマルチモジュール
 我々は、これに関して確立された解決策を検討していています。 
 例えば、JMX、Dropwizard Metrics、Graphiteなどです。
 
-A multi-module system may provide a wide variety of metrics and an
-immense amount of measurement data. Only a fraction of this data can
-be analyzed at runtime, most of it must be captured for analysis at a
-later stage. Capturing and storing data in a form that lends itself to
-an effortless post factum analysis is essential for analytics and we
-are looking into integration between open and popular solutions and
-Okapi.
-
 マルチモジュール・システムは、多種多様なメトリクスおよび膨大な量の測定データを提供することができます。 
 このデータのほんの一部は実行時に分析することができ、
 そのほとんどは分析のために後の段階で取り込まなければなりません。
@@ -518,14 +510,12 @@ Okapi.
 
 #### Response Aggregation
 
-There is no direct support for response aggregation in Okapi at the
-moment, as Okapi assumes sequential execution of the pipeline and
-forwards each response to the next module in the pipeline. In this
-mode, it is entirely possible to implement an aggregation module that
-will communicate with multiple modules (via Okapi, to retain the
-provided authentication and service discovery) and combine the
-responses. In further releases a more generic approach to response
-aggregation will be evaluated.
+Okapiはパイプラインの順次実行を想定しており、
+各レスポンスをパイプラインの次のモジュールに転送するため、
+現在のところ、Okapiではレスポンスの集約は直接サポートしていません。 
+このモードでは、複数のモジュールと通信し（Okapiを介して、提供された認証とサービスの検出を保持するために）、
+レスポンスを結合する集約モジュールを実装することは完全に可能です。 
+さらなるリリースでは、レスポンス集約のより包括的なアプローチが評価されるでしょう。
 
 #### Asynchronous messaging
 
