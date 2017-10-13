@@ -487,22 +487,20 @@ Okapiソースツリーに含まれる簡単なokapi-test-auth-moduleモジュ�
 
 #### Caching
 
-Okapi can provide an additional caching layer between modules,
-especially in busy, read-heavy, multi-module pipelines. We plan to
-follow standard HTTP mechanisms and semantics in this respect, and
-implementation details will be established within the coming months.
+Okapiは、特にビジー状態の読み取りが重いマルチモジュールパイプラインで、
+モジュール間に追加のキャッシングレイヤーを提供できます。 
+この点で標準のHTTPメカニズムとセマンティクスに従うことを計画しており、
+実装の詳細は今後数か月以内に確立される予定です。
 
 #### Instrumentation and Analytics
 
-In a microservices architecture, monitoring is key to ensure robustness
-and health of the entire system. The way to provide useful monitoring
-is to include well-defined instrumentation points ("hooks") before and
-after each step of execution of the request processing
-pipeline. Besides monitoring, instrumentation is crucial for the
-ability to quickly diagnose issues in the running system ("hot"
-debugging) and discovering performance bottlenecks (profiling). We are
-looking at established solutions in this regard: e.g. JMX,
-Dropwizard Metrics, Graphite, etc.
+マイクロ・サービス・アーキテクチャでは、システム全体の堅牢性と健全性を確保するために、監視が重要です。 
+有用な監視を提供する方法は、リクエスト処理パイプラインの各実行ステップの前後に、
+明確に定義された計測ポイント（「フック」）を含めることです。
+監視以外にも、実行中のシステムで問題をすばやく診断（「ホット」デバッグ）し、
+パフォーマンスのボトルネック（プロファイリング）を発見するためには、計測は非常に重要です。 
+我々は、これに関して確立された解決策を検討していています。 
+例えば、JMX、Dropwizard Metrics、Graphiteなどです。
 
 A multi-module system may provide a wide variety of metrics and an
 immense amount of measurement data. Only a fraction of this data can
@@ -511,6 +509,12 @@ later stage. Capturing and storing data in a form that lends itself to
 an effortless post factum analysis is essential for analytics and we
 are looking into integration between open and popular solutions and
 Okapi.
+
+マルチモジュール・システムは、多種多様なメトリクスおよび膨大な量の測定データを提供することができます。 
+このデータのほんの一部は実行時に分析することができ、
+そのほとんどは分析のために後の段階で取り込まなければなりません。
+簡単なポストファクトム分析に適した形式でデータをキャプチャして保存することは分析にとって不可欠であり、
+オープンソリューションと一般的なソリューションとOkapiの統合を検討しています。
 
 #### Response Aggregation
 
