@@ -383,12 +383,6 @@ Okapiは、前のモジュールからのレスポンスを、パイプライン
  * 特別なヘッダー（デバッグ、監視）の追加セットまたは最終レスポンスで表示されるべきその他のヘッダーが、
  最終レスポンス・ヘッダー・セットにマージされます。
 
-Okapi always adds a X-Okapi-Url header to the request to any modules.
-This tells the modules how they can make further calls to Okapi, should
-they need to. This Url can be specified on the command line when starting
-Okapi, and it can well point to some load balancer in front of multiple
-Okapi instances.
-
 Okapiは、どのモジュールに対するリクエストであっても、常にX-Okapi-Urlヘッダーを追加します。 
 これにより、必要な場合に、Okapiをさらに呼び出す方法をモジュールに伝えます。
 このURLは、Okapiの起動時にコマンドラインで指定することができ、
@@ -396,18 +390,16 @@ Okapiは、どのモジュールに対するリクエストであっても、常
 
 ### Versioning and Dependencies
 
-Modules can provide one or more interfaces, and can consume interfaces
-provided by other modules. The interfaces have versions, and dependencies
-can require given versions of an interface. Okapi will check dependencies and versions
-whenever a module is deployed, and also when a module is enabled for a tenant.
+モジュールは1つ以上のインタフェースを提供し、他のモジュールが提供するインタフェースを使用することができます。 
+インターフェイスにはバージョンがあり、依存関係には特定のバージョンのインターフェイスが必要な場合があります。 
+Okapiは、モジュールがデプロイされるたびに、またモジュールがテナントに対して有効になっているときに、依存関係とバージョンをチェックします。
 
-Note that we can have multiple modules providing the same interface. These
-can be deployed in Okapi simultaneously, but only one such module can be enabled
-for any given tenant at a given time. For example, we can have two ways to
-manage our patrons, one based on a local database, one talking to an external
-system. The installation can know both, but each tenant must choose one or
-the other.
-
+注：同じインターフェースを提供する複数のモジュールを持つことができます。
+これらは同時にOkapiにデプロイすることができますが、
+特定のテナントに対して、特定の時に有効にできるのはひとつだけです。
+たとえば、利用者を管理するのに、ローカルデータベースをベースとした方法、
+外部システムと対話する方法の、2つの方法があります。 
+インストールは両方を知ることができますが、各テナントはどちらか一方を選択する必要があります。
 
 #### Version numbers
 
