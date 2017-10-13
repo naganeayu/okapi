@@ -318,18 +318,18 @@ ModuledescriptionのRoutingEntryの `type`パラメータは、
 ほとんどのリクエストは、 `request-response`タイプである可能性があります。
 最も強力ですが潜在的に最も非効率なタイプです。
 なぜなら、コンテンツをモジュールとの間でストリーミングする必要があるからです。
-もっと効率的な型を使うことができるのであれば、そうするべきでしょう。
+もっと効率的なタイプを使うことができるのであれば、そうするべきでしょう。
 たとえば、認証モジュールのアクセス許可チェックでは、リクエストのヘッダーのみが参照され、
 ボディは返されません。ですので、`headers`タイプとなります。
 しかし、同じモジュールの初期ログインリクエストはログインパラメータを決定するために
 リクエストボディを参照します。そして、メッセージも返します。なので、
- `request-response`型でなければなりません。
+ `request-response`タイプでなければなりません。
 
 Okapiには、モジュールが例外的にX-Okapi-Stopヘッダーを返す機能があります。
 このモジュールが返す結果をもって、Okapiはパイプラインを終了させることになります。
 これは慎重に使用するように作られています。
 たとえば、ログイン・パイプラインの中のモジュールは、
-彼はセキュアなオフィスのIPアドレスから来ているため、
+ユーザがセキュアなオフィスのIPアドレスから来ていると、
 ユーザがすでに認証されていると結論付け、
 ログイン画面の表示に導くイベントのシーケンスを中断するかもしれません。
 
@@ -337,60 +337,62 @@ Okapiには、モジュールが例外的にX-Okapi-Stopヘッダーを返す機
 モジュールにコネクションを作るためにチャンク・エンコーディングにはHTTP 1.1を使います。
 
 ### Status Codes
+パイプラインの継続または終了は、
+実行されたモジュールによって返されたステータスコードによって制御されます。
+標準[HTTPステータスコード](https://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html) 
+の範囲がOkapiで受け入れられます：
 
-Continuation or termination of the pipeline is controlled by a status
-code returned by an executed module. Standard [HTTP status
-code](https://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html) ranges
-are accepted in Okapi:
+ * 2xx レンジ: OKリターン・コード。 このレンジのコードが
+モジュールによって返された場合、Okapiはパイプラインの実行を継続し、
+上記の規則に従って、連続したモジュールに情報を転送します。
+チェーンの最後には、呼び出された最後のモジュールによって返されるステータスが、
+呼び出し元に返されます。
 
- * 2xx range: OK return codes; if a code in this range is
-returned by a module, Okapi continues execution of the pipeline and
-forwards information to the consecutive modules according to the rules
-described above. At the end of the chain, the status returned by the
-last module invoked is the one returned to the caller.
+ * 3xx レンジ: リダイレクト・コード。 パイプラインが終了され、
+レスポンス（任意の `Location`ヘッダを含む）が呼び出し元にすぐに返されます。
 
- * 3xx range: Redirect codes. The pipeline is terminated, and the
-response (including any `Location` header) is immediately returned
-to the caller.
-
- * 4xx-5xx range: user request errors or internal system errors; if a
-code in this range is returned by a module, Okapi immediately
-terminates the entire chain and returns the code back to the caller.
+ * 4xx-5xx レンジ: ユーザー・リクエスト・エラー、または内部システムエラー。
+この範囲のコードがモジュールによって返された場合、Okapiは直ちにチェーン全体を終了し、
+コードを呼び出し元に返します。
 
 ### Header Merging Rules
 
-Since Okapi forwards the response from a previous module on to the
-next module in the pipeline (e.g. for additional filtering/processing),
-certain initial request headers become invalid, e.g. when a
-module converts the entity to a different content type or changes its
-size. Invalid headers need to be updated, based on the module's
-response header values, before the request can be forwarded to the
-next module. At the same time Okapi also collects a set of response
-headers in order to produce a final response that is sent back to the
-original client when the processing pipeline completes.
+Okapiは、前のモジュールからのレスポンスを、パイプライン内の次のモジュールにフォワードします
+（例えば、追加のフィルタリングや処理のため）。
+ですので、初期リクエストのヘッダによっては、無効となるものがでてきます。 
+例えば、モジュールがエンティティを異なるコンテンツタイプに変換したり、
+そのサイズを変更する時などです。
+リクエストが次のモジュールにフォワードされる前に、モジュールのレスポンス・ヘッダーの値に基づいて、
+無効なヘッダーを更新する必要があります。 
+同時に、Okapiは、処理パイプラインが完了したときに、
+元のクライアントに返される最終応答を生成するため、
+一連のレスポンス・ヘッダーも収集します。
 
-Both sets of headers are modified according to the following rules:
+両方のヘッダー・セットは、次の規則に従って変更されます。:
 
- * Any headers that provide metadata about the request entity body
-(e.g.  Content-Type, Content-Length, etc.) are merged from the last
-response back into the request.
+ * リクエスト・エンティティ・ボディ（例えば、Content-Type、Content-Lengthなど）に
+関するメタデータを提供するすべてのヘッダーは、
+返される最後のレスポンスからリクエストにマージされます。
 
- * An additional set of special debug and monitoring headers is merged
-from the last response into the current request (in order to forward
-them to the next module).
+ * 特別なデバッグおよびモニタリング・ヘッダーの追加セットが、
+ 最終の応答から現在の要求にマージされます（次のモジュールにそれらをフォワードするために）。
+ 
+ * レスポンス・エンティティ・ボディに関するメタデータを提供するヘッダーのリストは、
+ 最終的なレスポンス・ヘッダー・セットにマージされます。
 
- * A list of headers that provide metadata about the response entity
-body is merged to the final response header set.
-
- * An additional set of special headers (debug, monitoring) or any
-other headers that should be visible in the final response is merged
-into the final response header set.
+ * 特別なヘッダー（デバッグ、監視）の追加セットまたは最終レスポンスで表示されるべきその他のヘッダーが、
+ 最終レスポンス・ヘッダー・セットにマージされます。
 
 Okapi always adds a X-Okapi-Url header to the request to any modules.
 This tells the modules how they can make further calls to Okapi, should
 they need to. This Url can be specified on the command line when starting
 Okapi, and it can well point to some load balancer in front of multiple
 Okapi instances.
+
+Okapiは、どのモジュールに対するリクエストであっても、常にX-Okapi-Urlヘッダーを追加します。 
+これにより、必要な場合に、Okapiをさらに呼び出す方法をモジュールに伝えます。
+このURLは、Okapiの起動時にコマンドラインで指定することができ、
+複数のOkapiインスタンスの前にあるロードバランサを指し示すことができます。
 
 ### Versioning and Dependencies
 
