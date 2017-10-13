@@ -529,6 +529,12 @@ websockets. We anticipate that for future releases of Okapi we will
 investigate the asynchronous approach in depth and provide support for
 some open messaging protocols (e.g. STOMP).
 
+現在、Okapiは、モジュール間の転送プロトコルとして、フロントエンドとシステム内の両方でHTTPを想定し実装しています。 
+HTTPはリクエスト - レスポンスパラダイムに基づいており、非同期メッセージング機能を直接には含みません。
+しかしながら、HTTPの上で非同期動作モードをモデル化することは完全に可能です。 
+例えば、ポーリング手法やWebSocketのようなHTTP拡張機能を使用します。 
+今後のOkapiのリリースでは、非同期アプローチを深く検討し、いくつかのオープンメッセージングプロトコル（STOMPなど）をサポートする予定です。
+
 ## Implementation
 
 We have a rudimentary implementation of Okapi in place. The examples below
