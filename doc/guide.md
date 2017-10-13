@@ -392,7 +392,8 @@ Okapiは、どのモジュールに対するリクエストであっても、常
 
 モジュールは1つ以上のインタフェースを提供し、他のモジュールが提供するインタフェースを使用することができます。 
 インターフェイスにはバージョンがあり、依存関係には特定のバージョンのインターフェイスが必要な場合があります。 
-Okapiは、モジュールがデプロイされるたびに、またモジュールがテナントに対して有効になっているときに、依存関係とバージョンをチェックします。
+Okapiは、モジュールがデプロイされるたびに、またモジュールがテナントに対して有効になっているときに、
+依存関係とバージョンをチェックします。
 
 注：同じインターフェースを提供する複数のモジュールを持つことができます。
 これらは同時にOkapiにデプロイすることができますが、
@@ -403,10 +404,10 @@ Okapiは、モジュールがデプロイされるたびに、またモジュー
 
 #### Version numbers
 
-We use a 3-part versioning scheme for module software versions, for example
-`3.1.41` -- very much like [Semantic Versioning](http://semver.org/).
-Interface versions consist only of the first two parts, as they have
-no implementation version.
+モジュール・ソフトウェアのバージョンは、3-part versioning schemeを利用します。
+（例えば、3.1.41）これは、[セマンティック・バージョニング](http://semver.org/)
+に非常によく似ています。インターフェースのバージョンは最初の2つを利用します。
+これは実装のバージョンがないためです。
 
 The first number is the major version. It needs to be incremented whenever
 making a change that is not strictly backwards compatible, for example removing
