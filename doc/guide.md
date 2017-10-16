@@ -1948,38 +1948,40 @@ Content-Length: 0
 
 #### On a single machine
 
-The simplest cluster setup is to run multiple instances of Okapi on the same
-machine. This is not how it is supposed to be done, but it is easiest to
-demonstrate.
+最も簡単なクラスタ設定は、同じマシン上でOkapiの複数のインスタンスを実行することです。 
+これは行われるべきやり方ではありませんが、デモをするのに最も簡単な方法です。
 
-Open a console, and start your first Okapi
+コンソールを開き、最初のOkapiを起動する
 ```
 java -jar okapi-core/target/okapi-core-fat.jar cluster
 ```
 
-Okapi prints more startup messages than in `dev` mode. The interesting
-message line includes something like
+Okapiは `dev`モードよりも多くの起動メッセージを表示します。 
+面白いメッセージ行には次のようなものがあります
+
 ```
 Hazelcast 3.6.3 (20160527 - 08b28c3) starting at Address[172.17.42.1]:5701
 ```
-It says that we are using Hazelcast - the tool vert.x uses for clustering,
-and that it is using port 5701 on address 172.17.42.1. The port is the default,
-but Hazelcast will try to find a free one, so you may end up with another one.
-The address is the address of your machine, on one of its interfaces. More about
-that later.
 
-Open another console, and start another instance of Okapi. Since you are on
-the same machine, both instances can not be listening on the same port. By
-default Okapi allocates 20 ports for the modules, so let's start the next
-Okapi on port 9150:
+これは、vert.xがクラスタリングに使用するHazelcastを使用しており、
+アドレス172.17.42.1上でポート5701を使用していることを示しています。 
+ポートはデフォルトですが、Hazelcastは空きポートを見つけようとするため、
+別のポートで終了する可能性があります。
+アドレスは、そのインターフェースの1つにあるマシンのアドレスです。 
+それについては後で詳しく説明します。
+
+別のコンソールを開き、Okapiの別のインスタンスを起動します。
+同じマシン上にあるため、両方のインスタンスが同じポートでリスンすることはできません。
+デフォルトでは、Okapiはモジュール用に20個のポートを割り当てていますので、次のOkapiをポート9150から始めましょう：
 ```
 java -Dport=9150 -jar okapi-core/target/okapi-core-fat.jar cluster
 ```
-Again Okapi prints some startup messages, but note that also the first Okapi
-prints some stuff. Those two are connecting, and talking to each other.
 
+再びOkapiはいくつかの起動メッセージを表示しますが、最初のOkapiもいくつか表示しています。
+それらの2つは接続してお互いに話しています。
 
-Now you can ask Okapi to list the known nodes. On a third console window try this:
+これで、Okapiに既知のノードのリストを要求することができます。
+3番目のコンソールウィンドウでこれを試してください：
 
 ```curl -w '\n' -D - http://localhost:9130/_/discovery/nodes```
 
@@ -1997,11 +1999,13 @@ Content-Length: 186
 } ]
 ```
 
-Indeed, it lists two nodes. They each have a URL they can be reached on, and
-a nodeId that is some random UUID string.
+実際には、2つのノードがリストされます。 
+彼らはそれぞれ、到達可能なURLと、ランダムなUUID文字列であるnodeIdを持っています。
 
-You can ask the other node to list all nodes by changing the port in your URL
-to 9150, and should get the same list, possibly in a different order.
+あなたのURLのポートを9150に変更することによって、
+他のノードにすべてのノードをリストするように頼むことができ、
+おそらく異なる順序で同じリストを取得するでしょう。
+
 
 #### On separate machines
 Of course you want to run your cluster on multiple machines, that is the whole
