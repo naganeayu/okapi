@@ -747,71 +747,69 @@ okapi-test-moduleについてはこれで十分です。 実行していたウ�
 
 #### Okapi-test-header-module
 
-The `test-header` module demonstrates the use of a type=headers module; that is
-a module which inspects HTTP headers and produces a new set of HTTP headers.
-The response body is ignored and should be empty.
+`test-header`モジュールは、type = headersモジュールの使用法を示します。 
+これはHTTPヘッダーを検査し、新しいHTTPヘッダーセットを生成するモジュールです。
+レスポンス・ボディーは無視され、空でなければなりません。
 
-Start with:
+始めに:
 
 ```
 java -jar okapi-test-header-module/target/okapi-test-header-module-fat.jar
 ```
 
-The module reads `X-my-header` from leading path `/testb`. If that header is
-present, it will take its value and append `,foo`.
-If no such header is present, it will use the value `foo`.
+モジュールは先頭のパス `/ testb`から` X-my-header`を読み込みます。 
+そのヘッダーが存在すれば、その値をとり、 `、foo`を付加します。 
+そのようなヘッダーが存在しない場合、値 `foo`を使用します。
 
-These two cases can be demonstrated with:
+これらの2つのケースは次のように説明できます。
 
 ```
 curl -w '\n' -D- http://localhost:8080/testb
 ```
-and
+そして
 ```
 curl -w '\n' -H "X-my-header:hey" -D- http://localhost:8080/testb
 ```
 
-As above, now stop that simple verification.
+上記のように、今すぐ簡単な検証を中止してください。
 
 #### Okapi-test-auth-module
 
-Okapi itself does not do authentication: it delegates that to a
-module.  We do not have a fully functional authentication module yet,
-but we have a dummy module that can be used to demonstrate how it
-works. Also this one is mostly used for testing the auth mechanisms in
-Okapi itself.
+Okapi自体は認証を行いません。モジュールに委譲します。 
+私たちは完全に機能する認証モジュールをまだ持っていませんが、
+どのように動作するかを示すために使用できるダミーモジュールがあります。 
+また、これは主にOkapi自体の認証メカニズムをテストするために使用されます。
 
-The dummy module supports two functions: `/authn/login` is, as its name implies,
-a login function that takes a username and password, and if acceptable,
-returns a token in a HTTP header. Any other path goes through the check
-function that checks that we have a valid token in the HTTP request
-headers.
+ダミーモジュールは2つの機能をサポートしています： 
+`/ authn / login`は、その名前が暗示するように、ユーザ名とパスワードをとるログイン機能で、
+受け入れ可能な場合はHTTPヘッダ内にトークンを返します。 
+他のパスは、HTTPリクエストヘッダー内に有効なトークンがあることを確認するcheck機能を経由します。
 
-We will see examples of this when we get to play with Okapi itself. If
-you want, you can verify the module directly as with the okapi-test-module.
+私たちは、Okapi自身をいじる際の事例を見ていきます。 
+必要に応じて、okapi-test-moduleと同様にモジュールを直接検証できます。
 
 ### Running Okapi itself
 
-Now we are ready to start Okapi.
-Note: for this example to work it is important that the current directory
-of the Okapi is the top-level directory `.../okapi`.
+今、私たちはOkapiを開始する準備が整いました。
+注：この例を実行するには、Okapiのカレント・ディレクトリが
+最上位のディレクトリ `... / okapi`であることが重要です。
 
 ```
 java -jar okapi-core/target/okapi-core-fat.jar dev
 ```
 
-The `dev` command tells to run it in development mode, which makes it start
-with a known clean state without any modules or tenants defined.
+`dev`コマンドは、開発モードで実行するよう指示します。
+開発モードでは、モジュールやテナントが何も定義されていない、既知のクリーンな状態で起動します。
 
-Okapi lists its PID (process ID) and says `API Gateway started`.
-That means it is running, and listening on the default port
-which happens to be 9130, and using in-memory storage. (To use PostgreSQL
-storage instead, add `-Dstorage=postgres` to the [command line](#java--d-options).)
+OkapiはPID（プロセスID）を列挙し、「API Gateway started」と述べている。 
+これは、実行中であること、デフォルトポート9130でリスンしていること、イン・メモリの記憶域を使用していることを意味します。 
+（代わりにPostgreSQLストレージを使用するには、 `-Dstorage = postgres`を
+[command line]（＃java -d-options）に追加してください。）
 
-When Okapi starts up for the first time, it checks if we have a ModuleDescriptor
-for the internal module that implements all the endpoints we use in this example.
-If not, it will create it for us, so that we can use Okapi itself. We can ask
-Okapi to list the known modules:
+Okapiが初めて起動すると、この例で使用するすべてのエンドポイントを実装する
+内部モジュールのModuleDescriptorがあるかどうかを確認します。 
+なければ、それは私たちのために作成されるので、我々はOkapi自体を使用することができます。 
+Okapiに既知のモジュールをリストアップするように頼むことができます：
 
 ```
 curl -w '\n' -D -  http://localhost:9130/_/proxy/modules
@@ -826,12 +824,13 @@ Content-Length: 74
   "name" : "okapi-1.7.1-SNAPSHOT"
 } ]
 ```
+バージョン番号は時間とともに変化します。 
+この例は開発ブランチ上で実行されたので、バージョンには `-SNAPSHOT`という接尾辞があります。
 
-The version number will change over time. This example was run on a development
-branch, so the version has the `-SNAPSHOT` suffix.
+すべてのOkapiの運営はテナントのために行われているため、
+立ち上げ時に少なくとも1つは定義されていることをOkapiは確認します。
 
-Since all Okapi operations are done on behalf of a tenant, Okapi will make sure
-that we have at least one defined when we start up. Again, you can see it with:
+再び、あなたはそれを見ることができます：
 
 ```
 curl -w '\n' -D - http://localhost:9130/_/proxy/tenants
@@ -856,10 +855,15 @@ these operations would be carried out by a properly authorized administrator.
 As mentioned above, the process consists of three parts: deployment, discovery,
 and configuring the proxying.
 
+だから私たちはいくつかのモジュールで作業したいとOkapiに伝える必要があります。 
+実際には、これらの操作は適切に許可された管理者によって実行されます。
+
+前述のとおり、プロセスは3つの部分から構成されています。デプロイ、ディスカバリー、およびプロキシの構成です。
+
 #### Deploying the test-basic module
 
-To tell Okapi that we want to use the `okapi-test-module`, we create a JSON
-structure of a moduleDescriptor and POST it to Okapi:
+Okapiに `okapi-test-module`を使用することを伝えるために、
+moduleDescriptorのJSON構造を作成し、それをOkapiにPOSTします：
 
 ```
 cat > /tmp/okapi-proxy-test-basic.1.json <<END
@@ -884,25 +888,30 @@ cat > /tmp/okapi-proxy-test-basic.1.json <<END
 }
 END
 ```
-
-The id is what we will be using to refer to this module later. The version number
-is included in the id, so that the id uniquely identifies exactly what module
-we are talking about. (Okapi does not enforce this, it is also possible to use
-UUIDs or other things, as long as they are truly unique, but we have decided to
-use this naming scheme for all modules.)
+idは後でこのモジュールを参照するために使用するものです。 
+バージョン番号はidに含まれているので、私たちが話しているモジュールをidが正確に特定するようになっています。 
+（Okapiはこれを強制するのではなく、本当にユニークである限り、UUIDなどを使用することもできますが、
+すべてのモジュールでこの命名規則を使用することに決めました。）
 
 This module provides just one interface, called `test-basic`. It has one handler
 that indicates that the interface is interested in GET and POST requests to the
 /testb path and nothing else.
 
+このモジュールは `test-basic`と呼ばれるただ1つのインタフェースを提供します。
+それには、そのインターフェイスが/ testbパスに対するGETとPOSTリクエストだけに関心があることを示すハンドラが1つあります。
+
 The launchDescriptor tells Okapi how this module is to be started and stopped.
 In this version we use a simple `exec` command line. Okapi will start a process,
 remember the PID, and just kill it when we are done.
 
-The moduleDescriptor can contain much more stuff, more about that in later
-examples.
+launchDescriptorは、このモジュールをどのように起動および停止するかをOkapiに伝えます。 
+このバージョンでは、単純な `exec`コマンドラインを使用します。 
+Okapiはプロセスを開始し、PIDを覚えて、完了したらただkillします。
 
-So, let's post it:
+moduleDescriptorにはもっと多くのものが含まれていますが、後の例で詳しく説明します。
+
+それでは、ポストしましょう：
+
 ```
 curl -w '\n' -X POST -D - \
   -H "Content-type: application/json" \
@@ -932,15 +941,17 @@ Content-Length: 350
 }
 ```
 
-Okapi responds with a "201 Created", and reports back the same JSON. There is
-also a Location header that shows the address of this module, if we want to
-modify or delete it, or just look at it, like this:
+Okapiは「201 Created」と応答し、同じJSONを返します。
+このモジュールのアドレスを示すLocationヘッダもあります。
+変更または削除する場合、もしくは参照だけする場合は、次のようにします：
+
 
 ```
 curl -w '\n' -D - http://localhost:9130/_/proxy/modules/test-basic-1.0.0
 ```
 
-We can also ask Okapi to list all known modules, like we did in the beginning:
+私たちはまた、最初にやったように、Okapiにすべての既知のモジュールをリストアップするよう依頼することもできます：
+
 ```
 curl -w '\n' http://localhost:9130/_/proxy/modules
 ```
@@ -949,6 +960,11 @@ posted.
 
 Note that Okapi gives us less details about the modules, for in the real life this
 could be quite a long list.
+
+これは、2つのモジュールの短いリストを示しています。
+内部のモジュールと、今ポストしたモジュールのリストです。
+
+実際にはかなり長いリストになる可能性があるので、Okapiはモジュールについての詳細を提供しません。
 
 #### Deploying the module
 
