@@ -1525,8 +1525,6 @@ Content-Length: 31
 }
 ```
 
-Now the new module is enabled for our tenant, and the old one is not, as can
-be seen with:
 新しいモジュールがテナントに使用可能になり、古いモジュール使用不可能になります、次のように：
 ```
 curl -w '\n' http://localhost:9130/_/proxy/tenants/testlib/modules
@@ -1732,24 +1730,20 @@ permissionモジュールはそれを行うべきもので、そのようにperm
 
 ### Multiple interfaces
 
-Normally, Okapi proxy allows exactly one module at once to
-provide a given interface. By using `interfaceType` `multiple` in the
-`provides` section, Okapi allows any number of modules to implement the
-same interface. The consequence, however, is that the user of the interface
-must choose which module to call by specifying HTTP header
-`X-Okapi-Module-Id`.
-Okapi offers a facility which returns list of modules that implement
-a given interface for a tenant
-( `_/proxy/tenants/{tenant}/interfaces/{interface}` ). Normally the
-tenant will be the same as the "current" tenant (header `X-Okapi-Tenant`).
+通常、Okapiプロキシは所定のインタフェースを提供するのにただ一つのモジュールを許可します。
+`provide`セクションで`interfaceType` `multiple`を使うことで、任意の数のモジュールが同じインターフェースを実装することができます。
+しかし、結局のところ、インタフェースのユーザは、
+HTTPヘッダー`X-Okapi-Module-Id`を指定し、呼び出すモジュールを選択する必要があります。
+Okapiは、テナント( `_/proxy/tenants/{tenant}/interfaces/{interface}` )に対して
+与えられたインタフェースを実装するモジュールのリストを返すファシリティを提供します。
+通常、テナントは「カレント」テナント（ヘッダー `X-Okapi-Tenant`）と同じです。
 
-Let's go through this by an example. We'll define two modules that
-implement the same interface and call one of them.
-We assume that tenant testlib from the previous example is still present,
-as well as the auth module.
-Let's try to define a Module Descriptor for our test module used earlier.
-The ModuleDescriptor below uses `interfaceType` set to `multiple`, so that
-Okapi allows multiple modules of interface `test-multi` to co-exist.
+この例を見てみましょう。
+同じインターフェースを実装する2つのモジュールを定義し、そのうちの1つを呼び出します。
+前の例のテナントtestlibとauthモジュールがまだ存在すると仮定します。
+前に使用したテストモジュールのModule Descriptorを定義しようとしましょう。
+以下のModuleDescriptorは `interfaceType`を` multiple`に設定しているので、
+Okapiは`test-multi`インターフェースの複数のモジュールを共存させることができます。
 
 ```
 cat > /tmp/okapi-proxy-foo.json <<END
@@ -1775,7 +1769,7 @@ cat > /tmp/okapi-proxy-foo.json <<END
 }
 END
 ```
-Register and deploy `foo`:
+`foo`を登録してデプロイする：
 
 ```
 curl -w '\n' -X POST -D - \
@@ -1802,7 +1796,7 @@ curl -w '\n' -D - -s \
 ```
 
 
-We now define another module, `bar`:
+ここで別のモジュール `bar`を定義します:
 
 ```
 cat > /tmp/okapi-proxy-bar.json <<END
@@ -1828,7 +1822,7 @@ cat > /tmp/okapi-proxy-bar.json <<END
 }
 END
 ```
-Register and deploy `bar`:
+`bar`を登録してデプロイする：
 
 ```
 curl -w '\n' -X POST -D - \
@@ -1854,7 +1848,7 @@ curl -w '\n' -D - -s \
   http://localhost:9130/_/discovery/modules
 ```
 
-And now, enable both modules `foo` and `bar` for tenant `testlib`:
+そして今、テナント `testlib`の` foo`と `bar`の両方のモジュールを有効にします：
 
 ```
 cat > /tmp/okapi-enable-foo.json <<END
@@ -1882,8 +1876,7 @@ curl -w '\n' -X POST -D - \
   http://localhost:9130/_/proxy/tenants/testlib/modules
 ```
 
-We can ask Okapi about which modules implement interface `test-multi`
-with:
+私たちは、どのモジュールが`test-multi`インタフェースを実装しているのかをOkapiに尋ねることができます：
 
 
 ```
@@ -1902,7 +1895,7 @@ Content-Length: 64
 } ]
 ```
 
-Let's call module `bar`:
+モジュール `bar`を呼び出してみましょう：
 
 ```
 curl -D - -w '\n' \
@@ -1916,8 +1909,8 @@ It works
 
 
 ### Cleaning up
-We are done with the examples. Just to be nice, we delete everything we have
-installed:
+
+例は終わりです。 うまくいくように、インストールしたものはすべて削除します：
 
 ```
 curl -X DELETE -D - -w '\n' http://localhost:9130/_/proxy/tenants/testlib/modules/test-basic-1.2.0
@@ -1937,7 +1930,7 @@ curl -X DELETE -D - -w '\n' http://localhost:9130/_/proxy/modules/test-bar-1.0.0
 curl -X DELETE -D - -w '\n' http://localhost:9130/_/proxy/modules/test-auth-3.4.1
 ```
 
-Okapi responds to each of these with a simple:
+Okapiはこれらのそれぞれにシンプルに応答します：
 
 ```
 HTTP/1.1 204 No Content
@@ -1945,15 +1938,13 @@ Content-Type: text/plain
 Content-Length: 0
 ```
 <!-- STOP-EXAMPLE-RUN -->
-Finally we can stop the Okapi instance we had running, with a simple `Ctrl-C`
-command.
-
+最後に、実行していたOkapiインスタンスを単純な `Ctrl-C`コマンドで停止することができます。
 
 ### Running in cluster mode
 
-So far all the examples have been running in `dev` mode on a single machine.
-That is good for demonstrating things, development, and such, but in real
-production setups we need to run on a cluster of machines.
+今のところすべての例は、単一のマシン上で `dev`モードで実行されています。 
+これはのデモンストレーション、開発などには適していますが、
+本物のプロダクション設定では、マシンのクラスタ上で実行する必要があります。
 
 #### On a single machine
 
