@@ -662,18 +662,16 @@ psql -U okapi postgresql://localhost:5432/okapi
 
 ### Curl examples
 
-The examples in the following sections can be pasted into a command-line console.
+次のセクションの例は、コマンドライン・コンソールに貼り付けることができます。
 
-It is also possible to extract all the example records with a perl
-one-liner, assuming you have this MarkDown source of this guide in the
-current directory as _guide.md_ -- as is the case in the source tree.
-This leaves them all in `/tmp` as files like `okapi-tenant.json`
+ソースツリーの場合のように、このガイドのこのMarkDownソースを_guide.md_としてカレントディレクトリに持っていれば、
+perlの1行ですべてのサンプルレコードを抽出することもできます。
+これは `/ tmp`の中に` okapi-tenant.json`のようなファイルとして保存されます。
 ```
 perl -n -e 'print if /^cat /../^END/;' guide.md | sh
 ```
 
-After that, it is also possible to run all the examples with a slightly more
-complex command:
+その後、やや複雑なコマンドですべてのサンプルを実行することもできます:
 
 ```
 perl -n -e 'print if /^curl /../http/; ' guide.md |
@@ -681,75 +679,71 @@ perl -n -e 'print if /^curl /../http/; ' guide.md |
   sh -x
 ```
 
-(See the script `doc/okapi-examples.sh` which runs the above two commands.)
+（上記の2つのコマンドを実行する `doc / okapi-examples.sh`スクリプトを参照してください。）
 
-This explicitly omits the cleaning up DELETE commands, so it leaves Okapi in a
-well-defined state with a few modules enabled for a few known tenants.
+これにより、DELETEコマンドのクリーンアップが明示的に省略されているため、
+Okapiはいくつかの既知のテナントに対して少数のモジュールが有効になっている明確な状態になります。
 
 ### Example modules
 
-Okapi is all about invoking modules, so we need to have a few to play with.
-It comes with three dummy modules that demonstrate different things.
+Okapiはすべてモジュールを呼び出すことに関するものなので、いくつか試してみる必要があります。
+別のものを示す3つのダミーモジュールが付属しています。
 
-Note that these are only intended for demonstration and test purposes.
-Do not base any real modules on these.
+これらはデモンストレーションとテストの目的にのみ使用されています。
+実際のモジュールをこれらの上に置かないでください。
 
-There are additional modules in the separate repository
-[folio-sample-modules](https://github.com/folio-org/folio-sample-modules).
+別個のリポジトリに追加のモジュールがあります
+[folio-sample-modules](https://github.com/folio-org/folio-sample-modules)
 
 #### Okapi-test-module
 
-This is a very simple module. If you make a GET request to it, it will reply "It
-works". If you POST something to it, it will reply with "Hello" followed by
-whatever you posted. It can do a few other tricks too, like echoing request
-headers. These are used in the tests for okapi-core.
+これは非常に単純なモジュールです。 あなたがそれにGETリクエストをすると、
+それは "It works"と答えるでしょう。 
+あなたが何かをPOSTすると、 "Hello"に続けてあなたがポストしたものが返されます。
+リクエスト・ヘッダーをエコーするなど、いくつかのやり方も可能です。
+これらはokapi-coreのテストに使用されます。
 
-Normally Okapi will be starting and stopping these modules for you, but we will
-run this one directly for now -- mostly to see how to use curl, a
-command-line HTTP client that is useful for testing.
+通常、Okapiがこれらのモジュールの起動と停止を行いますが、今はこれを直接実行します
+-- テストの際に便利なコマンドラインHTTPクライアントであるcurlの使い方をよく見ていくために。
 
-Open a console window, navigate to the okapi project root and issue the command:
+コンソールウィンドウを開き、okapiプロジェクトのルートに移動し、次のコマンドを実行します。
 
 ```
 java -jar okapi-test-module/target/okapi-test-module-fat.jar
 ```
 
-This starts the okapi-test-module listening on port 8080.
+これにより、ポート8080で待機しているokapi-test-moduleが起動します。
 
-Now open another console window, and try to access the
-test module with:
+別のコンソールウィンドウを開いて、以下のようにしてテストモジュールにアクセスしてみてください:
 
 ```
 curl -w '\n' http://localhost:8080/testb
 ```
 
-It should tell you that it works.
+動作することを示すでしょう。
 
-The option "`-w '\n'`" is just to make curl output an extra newline,
-because the responses do not necessarily end in newlines.
+オプション "` -w '\ n "`はcurl出力を改行するだけです。
+レスポンスが必ずしも改行で終了するわけではないからです。
 
-Now we will try to POST something to the test module. In real life this
-would be a JSON structure, but for now a simple text string will do.
+ここで、テストモジュールに何かPOSTを試みます。 
+実際にはこれはJSONの構造になると思われますが、今のところ単純な文字列で処理します。
 
 ```
 echo "Testing Okapi" > okapi.txt
 curl -w '\n' -X POST -d @okapi.txt http://localhost:8080/testb
 ```
 
-Again we have the -w option to get a newline in the output, and this
-time we add `-X POST` to make it a post request, and `-d @okapi.txt`
-to specify the name of the file containing the data that we want to
-post.
+再び、出力に改行を付ける-wオプションがあります。今回は POSTリクエストにする`-X POST`と
+POSTしたいデータを含むファイル名を特定する` -d @ okapi.txt`を追加します。
 
-The test module should respond with
+テストモジュールは以下のレスポンスを返すはずです。
 
     Hello Testing Okapi
 
-which is our test data, with a "Hello" prepended to it.
+私たちのテストデータであり、 "Hello"が付加されています。
 
-That is enough about the okapi-test-module for now. Go back to the window
-where you left it running, and kill it with a `Ctrl-C` command. It should
-not have produced any output after the initial messages.
+okapi-test-moduleについてはこれで十分です。 実行していたウィンドウに戻り、 `Ctrl-C`コマンドで終了します。
+最初のメッセージの後に出力が生成されるべきではありません。
 
 #### Okapi-test-header-module
 
