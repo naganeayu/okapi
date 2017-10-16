@@ -617,49 +617,44 @@ mvn exec:exec@debug
 
 ## Using Okapi
 
-These examples show how to use Okapi from the command line, using the `curl`
-http client. You should be able to copy and paste the commands to your
-command line from this document.
+これらの例は、 `curl` HTTPクライアントを使用して、コマンドラインからOkapiを使用する方法を示しています。 
+このドキュメントのコマンドラインにコマンドをコピーして貼り付けることができるはずです。
 
-The exact definition of the services is in the RAML files listed in
-the [Reference](#web-service) section.
+サービスの正確な定義は、[Reference]（＃web-service）セクションに記載されているRAMLファイルにあります。
 
 ### Storage
+Okapiは内部のイン・メモリ・モックストレージをデフォルトにしているため、その下にデータベースレイヤーがなくても実行できます。
+これは開発やテストでは問題ありませんが、実際には、あるデータをある呼び出しから次の呼び出しまで持続させることが必要です。 
+現在、MongoDBとPostgreSQLストレージは、Okapiを起動するコマンドラインにそれぞれ `-Dstorage = mongo`と
+` -Dstorage = postgres`オプションで有効にすることができます。
 
-Okapi defaults to an internal in-memory mock storage, so it can run without
-any database layer under it. This is fine for development and testing, but of
-course in real life we will want some of our data to persist from one invocation
-to the next. At the moment, MongoDB and PostgreSQL storage can be enabled by
-option `-Dstorage=mongo` and  `-Dstorage=postgres` respectively to the command
-line that starts Okapi.
+私たちはMongoのバックエンドから遠ざかっています。 
+コマンドラインオプションについては、MongoHandle.javaのコードを参照する必要があります。
 
-We are moving away from the Mongo backend. For its command line options, you
-will have to look in the code in MongoHandle.java.
+PostgreSQLデータベースの初期化は、2段階の操作です。 
+まず、PostgreSQLでユーザとデータベースを作成する必要があります。 これは、任意のマシンで1回だけ必要です。 
+Debianボックス上では次のようになるでしょう：
 
-Initializing the PostgreSQL database is a two-step operation. First we need to
-create a user and a database in PostgreSQL. This needs to be only once on any
-given machine. On a Debian box that will be something like this:
 ```
    sudo -u postgres -i
    createuser -P okapi   # When it asks for a password, enter okapi25
    createdb -O okapi okapi
 ```
-The values 'okapi', 'okapi25', and 'okapi' are defaults intended for
-development use only. In real production, some DBA will have to set up
-a proper database and its parameters, which will need to be passed to
-Okapi on the command line.
+値「okapi」、「okapi25」、および「okapi」は、開発用にのみ使用されるデフォルト値です。 
+実際のプロダクションでは、適切なデータベースとそのパラメータを設定する必要があるDBAもいるでしょう。
+パラメータは、コマンドラインでOkapiに渡す必要があります。
 
-The second step is creating the necessary tables and indexes. Okapi can do this
-for you, when invoked like this:
+2番目のステップは、必要なテーブルとインデックスを作成することです。
+Okapiはこのように呼び出されると、あなたのためにそれを行うことができます：
 ```
 java -Dport=8600 -Dstorage=postgres -jar target/okapi-core-fat.jar initdatabase
 ```
-This command removes existing tables and data if available and creates
-the necessary stuff, and exits Okapi. If you want to remove existing tables
-only, you can use the command `purgedatabase`.
 
-If you need to dig into Okapi's PostgreSQL database, you can do it with a
-command like this:
+このコマンドは、既存のテーブルとデータがあれば削除し、必要なものを作成して、Okapiを終了します。
+既存のテーブルのみを削除する場合は、 `purgedatabase`コマンドを使用できます。
+
+OkapiのPostgreSQLデータベースを掘り起こす必要がある場合は、次のようなコマンドで実行できます:
+
 ```
 psql -U okapi postgresql://localhost:5432/okapi
 ```
