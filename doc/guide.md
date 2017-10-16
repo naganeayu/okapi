@@ -849,12 +849,6 @@ Content-Length: 117
 
 ### Example 1: Deploying and using a simple module
 
-So we need to tell Okapi that we want to work with some modules. In real life
-these operations would be carried out by a properly authorized administrator.
-
-As mentioned above, the process consists of three parts: deployment, discovery,
-and configuring the proxying.
-
 だから私たちはいくつかのモジュールで作業したいとOkapiに伝える必要があります。 
 実際には、これらの操作は適切に許可された管理者によって実行されます。
 
@@ -893,16 +887,8 @@ idは後でこのモジュールを参照するために使用するものです
 （Okapiはこれを強制するのではなく、本当にユニークである限り、UUIDなどを使用することもできますが、
 すべてのモジュールでこの命名規則を使用することに決めました。）
 
-This module provides just one interface, called `test-basic`. It has one handler
-that indicates that the interface is interested in GET and POST requests to the
-/testb path and nothing else.
-
 このモジュールは `test-basic`と呼ばれるただ1つのインタフェースを提供します。
 それには、そのインターフェイスが/ testbパスに対するGETとPOSTリクエストだけに関心があることを示すハンドラが1つあります。
-
-The launchDescriptor tells Okapi how this module is to be started and stopped.
-In this version we use a simple `exec` command line. Okapi will start a process,
-remember the PID, and just kill it when we are done.
 
 launchDescriptorは、このモジュールをどのように起動および停止するかをOkapiに伝えます。 
 このバージョンでは、単純な `exec`コマンドラインを使用します。 
@@ -955,11 +941,6 @@ curl -w '\n' -D - http://localhost:9130/_/proxy/modules/test-basic-1.0.0
 ```
 curl -w '\n' http://localhost:9130/_/proxy/modules
 ```
-This shows a short list of two modules, the internal one, and the one we just
-posted.
-
-Note that Okapi gives us less details about the modules, for in the real life this
-could be quite a long list.
 
 これは、2つのモジュールの短いリストを示しています。
 内部のモジュールと、今ポストしたモジュールのリストです。
@@ -968,16 +949,17 @@ could be quite a long list.
 
 #### Deploying the module
 
-It is not enough that Okapi knows that such a module exists. We must also
-deploy the module. Here we must note that Okapi is meant to be running on a
-cluster with many nodes, so we must decide on which one to deploy it.  First we
-must check what clusters we have to work with:
+このようなモジュールが存在することは、Okapiが知っているだけでは不十分です。 
+モジュールをデプロイする必要もあります。
+ここでは、Okapiは多数のノードを持つクラスタ上で実行されることに注意する必要があります。
+そのため、どのノードにデプロイするかを決定する必要があります。 
+まず、作業するクラスタを確認する必要があります。
 
 ```
 curl -w '\n' http://localhost:9130/_/discovery/nodes
 ```
 
-Okapi responds with a short list of only one node:
+Okapiはただ1つのノードの短いリストで応答します：
 
 ```
 [ {
@@ -986,11 +968,10 @@ Okapi responds with a short list of only one node:
 } ]
 ```
 
-This is not surprising, we are running the whole thing on one machine, in 'dev'
-mode, so we only have one node in the cluster and by default it is called
-'localhost'.  If this was a real cluster, the cluster manager would have given
-ugly UUIDs for all the nodes when they started up. So let's deploy it there.
-First we create a DeploymentDescriptor:
+これは驚くべきことではないが、我々はすべてのものを 'dev'モードで1台のマシン上で実行しているので、
+クラスタには1つのノードしかなく、デフォルトでは 'localhost'と呼ばれるます。 
+これが実際のクラスタであった場合、クラスタ・マネージャは起動時にすべてのノードに対して美しくないUUIDを与えていたでしょう。 
+では、そこに展開しましょう。 最初にDeploymentDescriptorを作成します。
 
 ```
 cat > /tmp/okapi-deploy-test-basic.1.json <<END
@@ -1000,13 +981,12 @@ cat > /tmp/okapi-deploy-test-basic.1.json <<END
 }
 END
 ```
-
-And then we POST it to `/_/discovery`. Note that we do not post to
-`/_/deployment` although we could do so. The difference is that for `deployment`
-we would need to post to the actual node, whereas discovery is responsible for
-knowing what runs on which node, and is available on any Okapi on the cluster.
-In a production system there would probably be a firewall preventing any direct
-access to the nodes.
+そして、それを `/ _ / discovery`にPOSTします。 そうすることができるでしょうが、
+ `/ _ / deployment`にはポストしないことに注意してください。
+違いは、`deployment`の場合、実際のノードにポストする必要があります。
+ディスカバリはどのノードで実行されているかを知る役割を持ち、
+クラスタ上の任意のオカピで利用可能であるのにです。 
+プロダクションのシステムでは、ノードへの直接アクセスを防止するファイアウォールが存在する可能性があります。
 
 ```
 curl -w '\n' -D - -s \
@@ -1016,7 +996,8 @@ curl -w '\n' -D - -s \
   http://localhost:9130/_/discovery/modules
 ```
 
-Okapi responds with
+Okapiは以下を応答します。
+
 ```
 HTTP/1.1 201 Created
 Content-Type: application/json
@@ -1035,20 +1016,18 @@ Content-Length: 237
 }
 ```
 
-There is a bit more detail than what we posted to it. We only gave it the
-service Id "test-basic-1.0.0", and it went ahead and looked up the
-LaunchDescriptor from the ModuleDescriptor we posted earlier, with this id.
+私たちがポストしたものよりも少し詳細になっています。 サービスID "test-basic-1.0.0"だけを与えて、
+これを先に投稿したModuleDescriptorからLaunchDescriptorをこのIDで検索しました。
 
-Okapi has also allocated a port for this module, 9131, and given it an instance
-ID, "localhost-9131". This is necessary, since we can have multiple instances
-of the same module running on different nodes, or even the same one.
+Okapiはこのモジュール用のポート9131も割り当てて、インスタンスID「localhost-9131」を与えました。 
+これは、同じモジュールの複数のインスタンスを異なるノードや同じのーででさえもで実行することができるため、必要です。
 
-Finally Okapi also returns the URL that the module is listening on. In a real life
-cluster there would be a firewall preventing any direct access to the modules,
-since all traffic must go through Okapi for authorization checks, logging, etc.
-But in our simple test example, we can verify that the module is actually
-running on that URL. Well, not exactly that URL, but a URL that we get when
-we combine the path from the handler with the base URL above:
+最後に、OkapiはモジュールがリッスンしているURLも返します。 
+現実のクラスターでは、モジュールへの直接アクセスを防ぐファイアウォールがあります。
+すべてのトラフィックは認証チェック、ログなどのためにOkapiを経由しなければならないためです。
+しかし、簡単なテストの例では、モジュールが実際に そのURLで実行されていることをチェックできます。 
+まあ、正確にそのURLではなく、ハンドラーからのパスを上記のベースURLと組み合わせたときに得られるURLです：
+
 ```
 curl -w '\n' http://localhost:9131/testb
 
@@ -1056,8 +1035,9 @@ It works
 ```
 
 #### Creating a tenant
-As noted above, all traffic should be going through Okapi, not directly
-to the modules. But if we try Okapi's own base URL we get:
+
+上記のように、すべてのトラフィックはモジュールに直接送信されるのではなく、
+Okapiを経由する必要があります。 しかし、Okapi独自のベースURLを試してみると以下を得られます:
 
 ```
 curl -D - -w '\n' http://localhost:9130/testb
@@ -1072,6 +1052,10 @@ Missing Tenant
 Okapi is a multi-tenant system, so each request must be done on behalf of some
 tenant. We could use the supertenant, but that would be bad practice. Let's
 create a test tenant for this example. It is not very difficult:
+
+Okapiはマルチテナント・システムなので、各テナントに代わってそれぞれのリクエストを行う必要があります。 
+スーパー・テナントを使うこともできますが、それは悪い習慣です。 
+この例のテストテナントを作成しましょう。 それほど難しいことではありません：
 
 ```
 cat > /tmp/okapi-tenant.json <<END
@@ -1101,7 +1085,7 @@ Content-Length: 91
 ```
 
 #### Enabling the module for our tenant
-Next we need to enable the module for our tenant. This is even simpler operation:
+次に、テナント用のモジュールを有効にする必要があります。 これはさらに簡単な操作です:
 
 ```
 cat > /tmp/okapi-enable-basic-1.json <<END
