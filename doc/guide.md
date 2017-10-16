@@ -1049,10 +1049,6 @@ Content-Length: 14
 Missing Tenant
 ```
 
-Okapi is a multi-tenant system, so each request must be done on behalf of some
-tenant. We could use the supertenant, but that would be bad practice. Let's
-create a test tenant for this example. It is not very difficult:
-
 Okapiはマルチテナント・システムなので、各テナントに代わってそれぞれのリクエストを行う必要があります。 
 スーパー・テナントを使うこともできますが、それは悪い習慣です。 
 この例のテストテナントを作成しましょう。 それほど難しいことではありません：
@@ -1113,9 +1109,9 @@ Content-Length: 31
 
 #### Calling the module
 
-So, now we have a tenant, and it has a module enabled. Last time we tried to
-call the module, Okapi responded with "Missing tenant". We need to add the
-tenant in our calls, as an extra header:
+ですから、現在はテナントがあり、モジュールが有効になっています。 
+私たちが最後にモジュールを呼び出そうとしたとき、Okapiは "Missing tenant"と答えました。
+エクストラなヘッダーとして、テナントを呼び出しに追加する必要があります：
 
 ```
 curl -D - -w '\n' \
@@ -1132,7 +1128,7 @@ It works
 
 #### Another way
 
-There is another way to invoke a module for a given tenant, as shown below:
+次のように、特定のテナントのモジュールを呼び出す別の方法があります：
 
 ```
 curl -w '\n' -D - \
@@ -1140,25 +1136,25 @@ curl -w '\n' -D - \
 
 It works!
 ```
-This is a bit of a hack, for some special cases where we can not control the
-headers in the request, for example a callback from a SSO service. This is
-quite limited, it will fail for calls that require an auth token (see below).
-We may add a path to `/_/invoke/token/xxxxxxx/....` later for such cases.
 
-The invoke endpoint was added in Okapi 1.7.0
+これは、SSOサービスからのコールバックなど、リクエストのヘッダーを制御できない特殊なケースでは、ちょっとしたハックです。
+これは非常に制限されており、認証トークンを必要とするコールでは失敗します（下記参照）。
+このような場合には、後で `/ _ / invoke / token / xxxxxxx / .... ` にパスを追加することができます。
+
+invokeエンドポイントがOkapi 1.7.0で追加されました。
 
 
 ### Example 2: Adding the Auth module
 
-The previous example works for anyone who can guess a tenant ID. That is fine
-for a small test module, but real life modules do real work, and need to be
-restricted to privileged users. In real life we would have a complex set of
-modules managing all kind of authentication and authorization stuff, but for
-this example we only have Okapi's own test-auth module to play with. It will
-not do any serious authentication, but will be just enough to demonstrate how
-to use one.
+前の例は、テナントIDを推測することができまする人には誰にでも有効です。 
+これは小さなテストモジュールでは問題ありませんが、実際のモジュールが実際に動作する場合、
+特権ユーザーに限定する必要があります。 
+実際には、すべての種類の認証と認可を管理する複雑なモジュールセットが必要になりますが、
+この例では、Okapi独自のtest-authモジュールのみを使用しています。 
+それはどんな深刻な認証もしませんが、それを使用する方法を実証するのにちょうど十分でしょう。
 
-As before, the first thing we create is a ModuleDescriptor:
+前と同じように、我々が作成する最初のものはModuleDescriptorです：
+
 ```
 cat > /tmp/okapi-module-auth.json <<END
 {
@@ -1187,26 +1183,26 @@ cat > /tmp/okapi-module-auth.json <<END
 }
 END
 ```
-The module has one handler, for the `/authn/login` path. It also has a filter that
-connects with every incoming request. That is where it decides if the user will
-be allowed to make the request. This one has a type "headers", which means that
-Okapi does not pass the whole request to it, just the headers.
 
-The pathPattern for the filter uses the wildcard character (`*`) to match any path.
-A pathPattern may also include curly braces pairs to match a path component. For
-example `/users/{id}` would match `/users/abc`, but not `/users/abc/d`.
+モジュールには、 `/ authn / login`パス用のハンドラが1つあります。 
+また、すべてのやってくるリクエストに接続するフィルターもあります。 
+それは、ユーザーがリクエストを許可されるかどうかを決定するところです。 
+これには「ヘッダー」というタイプがあります。
+これは、Okapuがリクエストのすべてではなく、ヘッダーだけを渡すことを意味します。
 
-The phase specifies at which stage the filter is to be applied. At this point,
-we only have one phase, "auth", which gets invoked before the handlers. We are
-likely to come up with different phases as the need arises, both before and
-after the handlers.
+フィルタのpathPatternはワイルドカード文字（ `*`）を使用して任意のパスにマッチさせます。 
+pathPatternには、パス・コンポーネントに一致させるための中括弧のペアも含まれます。
+例えば `/users/{id}`は  `/users/abc`には一致しますが、`/users/abc/d`には一致しません。
 
-We could have included a launchDescriptor as before, but just to demonstrate
-another way, we have omitted it here. Doing it this way may make more sense in
-a clustered environment where each module instance may need some extra
-command-line arguments or environment variables.
+フェーズは、フィルタが適用されるステージを指定します。 
+この時点では、ハンドラの前に呼び出される1つのフェーズ「auth」しかありません。 
+必要に応じて、ハンドラの前後に、さまざまなフェーズが登場する可能性があります。
 
-So we POST it to Okapi:
+以前と同じようにlaunchDescriptorを含めることができましたが、別の方法を示すためにここでは省略しました。 
+このようにすると、各モジュールインスタンスが余分にコマンドライン引数や環境変数を必要とするかもしれない、
+クラスタ化された環境では、より意味をなすようになるかもしれません。
+
+私たちはOkapiにそれをPOSTします：
 
 ```
 curl -w '\n' -X POST -D - \
@@ -1240,8 +1236,8 @@ Content-Length: 357
 }
 ```
 
-Next we need to deploy the module. Since we did not put a launchDescriptor
-in the moduleDescriptor, we need to provide one here.
+次に、モジュールをデプロイする必要があります。 
+私たちはlaunchDescriptorをmoduleDescriptorに入れなかったので、ここでひとつ提供する必要があります。
 
 ```
 cat > /tmp/okapi-deploy-test-auth.json <<END
@@ -1277,7 +1273,7 @@ Content-Length: 246
 }
 ```
 
-And we enable the module for our tenant:
+そして私たちはテナントのためにモジュールを有効にします：
 
 ```
 cat > /tmp/okapi-enable-auth.json <<END
@@ -1302,9 +1298,9 @@ Content-Length: 30
 }
 ```
 
-So, the auth module should now intercept every call we make to Okapi, and
-check if we are authorized for it. Let's try with the same call to the
-basic module as before:
+ですから、認証モジュールはOkapiに行ったすべての呼び出しを傍受し、
+それが許可されているかどうかを確認する必要があります。
+前と同様の基本モジュールへの同じ呼び出しを試してみましょう：
 
 ```
 curl -D - -w '\n' \
@@ -1319,11 +1315,14 @@ Transfer-Encoding: chunked
 Auth.check called without X-Okapi-Token
 ```
 
-Indeed, we are no longer allowed to call the test module. So, how do we get
-the permission? The error message says that we need a `X-Okapi-Token`. Those
-we can get from the login service. The dummy auth module is not very clever in
-verifying passwords, it assumes that for username "peter" we have a password
-"peter-password". Not overly secure, but enough for this example.
+実際、私たちはもはやテストモジュールを呼び出すことはできません。 
+そうなると、どのように許可を得るのでしょう？ 
+エラーメッセージは、 `X-Okapi-Token`が必要であることを示しています。
+それはログインサービスから得ることができるものです。
+ダミーの認証モジュールは、それほど賢くはパスワードを確認できません、
+ユーザー名 "peter"にはパスワード "peter-password"があると仮定しています。 
+非常に安全というわけではありませんが、この例では十分です。
+
 
 ```
 cat > /tmp/okapi-login.json <<END
@@ -1350,19 +1349,21 @@ Transfer-Encoding: chunked
 {  "tenant": "testlib",  "username": "peter",  "password": "peter-password"}
 ```
 
-The response just echoes its parameters, but notice that we get back a header
-`X-Okapi-Token: dummyJwt.eyJzdWIiOiJwZXRlciIsInRlbmFudCI6InRlc3RsaWIifQ==.sig`.
-We are not supposed to worry about what that header contains, but we can see its
-format is almost as you would expect from a JWT: Three parts separated by dots,
-first a header, then a base-64 encoded payload, and finally a signature. The
-header and signature would normally be base-64 encoded as well, but the simple
-test-auth module skips that part, to make a distinct token that can not be mistaken
-as a real JWT. The payload is indeed base-64 encoded, and if you decode it, you
-see that it will contain a JSON structure with the user id and the tenant id,
-and nothing much else. A real-life auth module would of course put more stuff
-in the JWT, and sign it with some strong crypto. But that should make no
-difference to Okapi's users -- all that they need to know is how do we get a token,
-and how to pass it on in every request. Like this:
+レスポンスはただそのパラメータをエコーするだけですが、
+ヘッダー `X-Okapi-Token: dummyJwt.eyJzdWIiOiJwZXRlciIsInRlbmFudCI6InRlc3RsaWIifQ==.sig`
+を返すことに注意してください。
+ヘッダーの内容については本来心配するものではありませんが、
+JWTに期待するものとほぼ同じフォーマットになっています：
+ドットで区切られた3つの部分、最初はヘッダー、次にbase-64にエンコードされたペイロード、最後に署名。
+ヘッダーと署名も通常base-64でエンコードされますが、
+単純なtest-authモジュールはその部分をスキップして、本当のJWTと誤解されない別個のトークンを作成します。
+ペイロードは実際にbase-64でエンコードされています。
+デコードすると、ユーザーIDとテナントIDを持つJSON構造が含まれており、
+他に含まれているものは大してない、ということが分かります。
+実際の認証モジュールはもちろん、JWTにもっと多くのものを入れ、強力な暗号で署名します。
+しかし、それはOkapiのユーザーには何の差もないはずです。
+彼らが知る必要があるのは、どのようにトークンを取得するのか、またどのように各リクエストにトークンを渡すのかです。
+このように：
 
 ```
 curl -D - -w '\n' \
@@ -1379,7 +1380,7 @@ Transfer-Encoding: chunked
 It works
 ```
 
-We can also post things to our test module:
+私たちはテストモジュールにポストすることもできます：
 ```
 curl -w '\n' -X POST -D - \
   -H "Content-type: application/json" \
@@ -1388,17 +1389,18 @@ curl -w '\n' -X POST -D - \
   -d '{ "foo":"bar"}' \
   http://localhost:9130/testb
 ```
-The module responds with the same JSON, but prepends "Hello" to the string.
-
+モジュールは同じJSONで応答しますが、文字列には "Hello"が付加されます。
 
 ### Example 3: Upgrading, versions, environment, and the `_tenant` interface
 
-Upgrading can often be problematic. More so in Okapi, since we are serving many
-tenants, who will have different ideas about when and what to upgrade. In this
-example we go through the upgrading process, discuss versions, environment
-variables, and also look at the special `_tenant` system interface.
+アップグレードはしばしば問題になることがあります。 
+Okapiではなおさらです。
+私たちは多くのテナントにサービスを提供しており、
+テナントはいつ、何をアップグレードするのかについて異なる考えを持っているからです。
+この例では、アップグレード・プロセスを説明し、バージョンと環境変数について議論し、
+特別な `_tenant`システム・インタフェースを見ていきます。
 
-Let's say we have a new and improved sample module:
+例えば、新しい改良されたサンプルモジュールがあるとしましょう：
 ```
 cat > /tmp/okapi-proxy-test-basic.2.json <<END
 {
@@ -1445,28 +1447,27 @@ cat > /tmp/okapi-proxy-test-basic.2.json <<END
 }
 END
 ```
-Note that we give it a different id, with the same name, but a higher version
-number. Note also that for this example we make use of the same okapi-test-module
-program, since we do not have much else to play with. This could also happen in
-real life, if we only have changes in the module descriptor, like we have here.
 
-We have added a new interface that the module supports: `_tenant`. It is a
-system interface that Okapi will automatically call when the module gets
-enabled for a tenant. Its purpose is to do whatever initialization the module
-needs, for example to create database tables.
+同じ名前で、別のIDを与えますが、より高いバージョン番号を付けることに注意してください。 
+更に、この例では、同じokapi-test-moduleプログラムを使用していることに注意してください。
+というのも、これは他に大していじれるものがないからです。
+ここにあるように、もしmodule descriptorのみに変更を加えた場合、これは実際に起こる可能性があります。
 
-We have also specified that this module requires the test-auth interface at least
-in version 3.1. The auth module we installed in the previous example provides
-3.4, so it is good enough.  (Requiring 3.5 or 4.0, or even 2.0 would not work,
-see [_Versioning and Dependencies_](#versioning-and-dependencies) or edit the
-descriptor and try to post it).
+モジュールがサポートする新しいインタフェースを追加しました： `_tenant`。 
+これは、モジュールがテナント用に有効になったときにOkapiが自動的に呼び出すシステムインターフェイスです。 
+その目的は、データベースのテーブルの作成など、モジュールが必要とする初期化を行うことです。
 
-Finally we have added an environment variable in the launch descriptor that
-specifies a different greeting. The module should report that back when
-serving a POST request.
+また、少なくともバージョン3.1ではこのモジュールにtest-authインターフェイスが必要であることを指定しました。 
+前述の例でインストールしたauthモジュールは3.4であるため、十分です。 
+（3.5または4.0、または2.0を要求することはできません。
+[_Versioning and Dependencies_](#versioning-and-dependencies) を参照するか、
+ディスクリプタを編集してポストしてください）。
 
-The upgrade process starts by posting the new module descriptor, just like with
-any module. We can not touch the old one, since some tenants may be using it.
+最後に、異なるグリーティングを指定する起動ディスクリプタに環境変数を追加しました。 
+モジュールは、POSTリクエストを処理するときにそれを報告する必要があります。
+
+アップグレード・プロセスは、モジュールの場合と同様に、新しいmodule descriptorをポストすることから始まります。
+一部のテナントがそれを使用している可能性があるため、古いものに触れることはできません。
 
 ```
 curl -w '\n' -X POST -D - \
@@ -1476,7 +1477,7 @@ curl -w '\n' -X POST -D - \
 
 HTTP/1.1 201 Created   ...
 ```
-Next we deploy the module, just as before.
+次に、前と同じようにモジュールをデプロイします。
 
 ```
 cat > /tmp/okapi-deploy-test-basic.2.json <<END
@@ -1496,6 +1497,10 @@ curl -w '\n' -D - -s \
 Now we have both modules installed and running. Our tenant is still using the
 old one. Let's change that, by enabling the new one instead of the old one.
 This is done with a POST request to the URL of the current module.
+
+これで、モジュールがインストールされ実行されています。 私たちのテナントはまだ古いものを使用しています。 
+古いものの代わりに新しいものを有効にすることで、それを変更してみましょう。
+これは、現在のモジュールのURLに対するPOST要求で行われます。
 
 ```
 cat > /tmp/okapi-enable-basic-2.json <<END
@@ -1522,11 +1527,12 @@ Content-Length: 31
 
 Now the new module is enabled for our tenant, and the old one is not, as can
 be seen with:
+新しいモジュールがテナントに使用可能になり、古いモジュール使用不可能になります、次のように：
 ```
 curl -w '\n' http://localhost:9130/_/proxy/tenants/testlib/modules
 ```
 
-If you look at Okapi's log, you see there is a line like this:
+Okapiのログを見ると、次のような行があることがわかります：
 ```
 15:32:40 INFO  MainVerticle         POST request to okapi-test-module tenant service for tenant testlib
 ```
@@ -1535,6 +1541,11 @@ It shows that our test module did get a request to the tenant interface.
 
 In order to verify that we really are using the new module, let's post a thing
 to it:
+
+私たちのテストモジュールがテナント・インターフェースへのリクエストを得たことを示しています。
+
+新しいモジュールを本当に使用しているかを確認するために、それにポストしてみましょう：
+
 ```
 curl -w '\n' -X POST -D - \
   -H "Content-type: application/json" \
@@ -1552,14 +1563,12 @@ Transfer-Encoding: chunked
 Hi there { "foo":"bar"}
 ```
 
-Indeed, we see "Hi there" instead of "Hello", and the X-Okapi-Trace shows that
-the request was sent to the improved version of the module.
+確かに、 "Hello"ではなく "Hi there"と表示され、X-Okapi-Traceは要求がモジュールの改良版に送られたことを示しています。
 
 ### Example 4: Complete ModuleDescriptor
 
-In this example we just show you a complete ModuleDescriptor, with all the bells
-and whistles. By now you should know how to use one, so there is no need to
-repeat all the `curl` commands.
+この例では、完全なModuleDescriptorを色々とオプションをつけて表示します。 
+今までに、これを使う方法を知っているはずですので、 `curl`コマンドをすべて繰り返す必要はありません。
 
 ```javascript
 {
@@ -1672,58 +1681,53 @@ repeat all the `curl` commands.
 }
 ```
 
-Most of the descriptor should look quite familiar at this point. The big
-new thing is about permissions.
-The full [permission system](security.md) is explained in a separate
-document and managed by the auth module complex.
-All of that is outside the scope of Okapi itself, and of this guide.
+この時点でほとんどのディスクリプタはかなりよく分かるようになったはずです。
+大きな新しいことはpermissionについてです。
+完全な [permission system](security.md) は別のドキュメントで説明され、
+複合認証モジュールシステムによって管理されます。
+そのすべてはOkapi自身とこのガイドの範囲外です。
 
-The most visible new thing in this descriptor is the whole new section called
-permissionSets. This defines what permissions and permission sets this module
-cares about. Point of terminology: "Permissions", or "Permission Bits" are
-simple strings like "test-basic.get.list". Okapi and the auth module operate
-on this granular level. "Permission Sets" are named sets that can contain
-several permission bits, and even other sets. Those will be reduced to the
-actual bits by the auth module. These are the lowest level that an admin user
-normally sees, and form the building blocks for constructing more complex roles.
+このdescriptorで最も目に見える新しいことは、permissionSetsと呼ばれる新しいセクションのすべてです。 
+これは、このモジュールが気にするpermissionとpermissionsセットを定義します。
+用語のポイント： "Permissions"または "Permission Bits"は "test-basic.get.list"のような単純な文字列です。
+Okapiと認証モジュールは、この粒度で動作します。
+「パーミッションセット」は、複数のパーミッションビット、さらには他のセットを含むことができる名前の付いたセットです。 
+これらはauthモジュールによって実際のビットに縮小されます。 
+これらは、管理ユーザーが通常見ている最も低いレベルであり、
+より複雑なロールを構築するためのビルディングブロックを形成します。
 
-The permission bits are used in the handler entries. The first one has a
-permissionsRequired field that contains the permission "test-basic.get.list".
-That means that if the user does not have such a permission, the auth module
-tells Okapi, which will refuse the request.
+permission bitsは、ハンドラ・エントリで使用されます。 
+最初のものにはpermission "test-basic.get.list"を含むpermissionsRequiredフィールドがあります。 
+つまり、ユーザーにそのようなpermissionがない場合、authモジュールはOkapiに通知し、リクエストを拒否します。
 
-The next entry has a permissionsRequired too, but also a permissionsDesired
-field with "test-basic.get.sensitive.details" in it. That indicates that the
-module desires to know if the user has such a permission or not. It is not a
-hard requirement, the request will be passed to the module in any case, but
-there will be a X-Okapi-Permissions header that will or will not contain
-that permission name. It is up to the module to decide what to do with it,
-in this case it could well decide to show or hide some unusually sensitive
-fields.
+次のエントリにもpermissionsRequiredがありますが、
+その中に "test-basic.get.sensitive.details"があるpermissionsDesiredフィールドもあります。 
+これは、モジュールがユーザーにそのようなpermissionがあるかどうかを知りたいということを示します。
+それは難しい要件ではなく、リクエストはいずれにせよモジュールに渡されますが、
+X-Okapi-Permissionsヘッダにはそのパーミッション名が含まれていたり含まれていなかったりします。 
+それで何をすべきかを決めるのはモジュールに任されています。
+この場合、非常にセンシティブなフィールドを表示したり非表示にしたりすることができます。
 
-There is also a third field, "modulePermissions" with the value "config.lookup".
-This tells that our module has been granted this permission. Even if the user
-will not have such a permission, the module does, and is therefore allowed to
-do something like looking up the configuration settings.
+また、 "config.lookup"という値を持つ第3のフィールド "modulePermissions"もあります。 
+これは私たちのモジュールにこのpermissionが与えられたことを示します。 
+ユーザーがそのようなpermissionを持っていなくても、モジュールは実行します。
+したがって、構成設定を調べるようなことをすることができます。
 
-As noted above, Okapi operates with the raw permission bits. It passed the
-required and desired permissions to the auth module, which will somehow
-deduce if the user will have those permissions or not. The details should not
-concern us here, but clearly the process has something to do with the
-permissionSets. How does the auth module get access to the permission sets of
-the moduleDescription? It does not happen by magic, but almost. When a module
-gets enabled for a tenant, Okapi not only calls the `_tenant` interface of the
-module itself, but also sees if any module provides a tenantPermissions
-interface, and passes the permissionSets there. The permission module is
-supposed to do that, and receive the permissionSets that way.
+上記のように、Okapiは未加工のpermission bitsで動作します。 
+それは認証モジュールに必要なpermissionを渡しました。
+認証モジュールは、ユーザーはそのアクセス権を持っているかどうかを何とか推測します。 
+詳細はここでは重要ではありませんが、プロセスがpermissionSetsと関係があることは明らかです。
+authモジュールはmoduleDescriptionのパーミッション・セットにどのようにアクセスするのでしょうか？
+それは魔法によって起こるのではありませんが、そのようなものです。 
+モジュールがテナントに対して有効になると、Okapiはモジュール自身の `_tenant`インタフェースを呼び出すだけでなく、
+モジュールがtenantPermissionsインタフェースを提供しているかどうかを確認し、そこにpermissionSetsを渡します。
+permissionモジュールはそれを行うべきもので、そのようにpermissionSetを受け取ります。
 
-Even this example does not cover all the possibilities in a ModuleDescriptor.
-There are features lingering from older versions (older than Okapi 1.2.0) that
-are still supported, but will be deprecated and removed in future versions.
-For example ModulePermissions and RoutingEntries on the top level of the
-descriptor. For the fully up-to-date definition, you should always refer to
-the RAML and JSON schemas in the [Reference](#web-service) section.
-
+この例でも、ModuleDescriptorのすべての可能性をカバーしているわけではありません。 
+まだサポートされている古いバージョン（Okapi 1.2.0より古い）には残っている機能がありますが、
+将来のバージョンでは廃止され、削除されます。
+たとえば、descriptorの最上位にあるModulePermissionsおよびRoutingEntriesです。 
+完全な最新の定義については、[Reference](#web-service)）セクションのRAMLとJSONのスキーマを常に参照してください。
 
 
 ### Multiple interfaces
