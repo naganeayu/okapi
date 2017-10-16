@@ -2008,17 +2008,18 @@ Content-Length: 186
 
 
 #### On separate machines
-Of course you want to run your cluster on multiple machines, that is the whole
-point of clustering.
 
-*Warning* Okapi uses the Hazelcast library for managing its cluster setup, and
-that uses multicast packets for discovering nodes in the cluster. Multicast
-works fine over most wired ethernets, but not nearly so well with wireless.
-Nobody should use wireless networking in a production cluster, but developers
-may wish to experiment with laptops on a wireless network. THAT WILL NOT WORK!
-There is a workaround involving a hazelcast-config-file where you list all
-IP addresses that participate in your cluster, but it is messy, and we will
-not go into the details here.
+もちろん、クラスタを複数のマシンで実行したいでしょう。つまりクラスタリングの核心です。
+
+*警告* Okapiは、クラスタ設定を管理するためにHazelcastライブラリを使用し、
+クラスタ内のノードを検出するためにマルチキャスト・パケットを使用します。 
+マルチキャストはほとんどの有線イーサネット上で正常に動作しますが、
+無線ではあまりうまく動作しません。 プロダクションのクラスターでは、
+ワイヤレスネットワークを使用するべきではありませんが、
+開発者はワイヤレスネットワーク上のラップトップで試してみたくなるでしょう。 
+そ　れ　は　う　ま　く　い　き　ま　せ　ん　！
+あなたのクラスタに参加するすべてのIPアドレスを一覧表示するhazelcast-config-fileを含む回避策がありますが、
+それは面倒です。ここでは詳細には触れません。
 
 The procedure is almost the same, except for two small
 details. For the first, there is no need to specify different ports, since those
