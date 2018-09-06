@@ -1908,7 +1908,7 @@ It works
 ```
 
 
-### Cleaning up
+### クリーンアップ
 
 例は終わりです。 うまくいくように、インストールしたものはすべて削除します：
 
@@ -1946,7 +1946,7 @@ Content-Length: 0
 これはのデモンストレーション、開発などには適していますが、
 本物のプロダクション設定では、マシンのクラスタ上で実行する必要があります。
 
-#### On a single machine
+#### 単一のマシン上で
 
 最も簡単なクラスタ設定は、同じマシン上でOkapiの複数のインスタンスを実行することです。 
 これは行われるべきやり方ではありませんが、デモをするのに最も簡単な方法です。
@@ -2007,7 +2007,7 @@ Content-Length: 186
 おそらく異なる順序で同じリストを取得するでしょう。
 
 
-#### On separate machines
+#### 複数のマシン上で
 
 もちろん、クラスタを複数のマシンで実行したいでしょう。つまりクラスタリングの核心です。
 
@@ -2021,26 +2021,27 @@ Content-Length: 186
 あなたのクラスタに参加するすべてのIPアドレスを一覧表示するhazelcast-config-fileを含む回避策がありますが、
 それは面倒です。ここでは詳細には触れません。
 
-The procedure is almost the same, except for two small
-details. For the first, there is no need to specify different ports, since those
-are on separate machines, and will not collide. Instead you need to make sure
-that the machines are on the same network. Modern Linux machines have multiple
-network interfaces, typically at least the ethernet cable, and the loopback
-interface. Quite often also a wifi port, and if you use Docker, it sets up its
-own internal network. You can see all the interfaces listed with `sudo ifconfig`.
-Okapi is not very clever in guessing which interface it needs to use, so often
-you have to tell it. You can do that with something like this:
+2つの細かい点を除いて、手順はほぼ同じです。  最初は、別々のマシン上にあり、衝突しないため、
+異なるポートを指定する必要はありません。 
+代わりに、マシンが同じネットワーク上にあることを確認する必要があります。
+最新のLinuxマシンには、複数のネットワークインタフェース、
+通常は少なくともイーサネットケーブルとループバックインタフェースがあります。 
+かなり多くの場合にWi-Fiポートでもあり、Dockerを使用する場合は独自の内部ネットワークを設定します。 
+`sudo ifconfig`でリストアップされたすべてのインタフェースを見ることができます。 
+Okapiは、どのインタフェースを使用する必要があるかを推測するほど賢くはないないので、
+しばしばそれを伝えなければなりません。 
+それには、次のような方法があります：
+
 ```
 java -jar okapi-core/target/okapi-core-fat.jar cluster -cluster-host 10.0.0.2
 ```
-Note that the cluster-host option has to be at the end of the command line. The
-parameter name is a bit misleading, it is not a hostname, but a IP address that
-needs to be there.
+cluster-hostオプションは、コマンドラインの最後になければならないことに注意してください。 パラメータ名は少し誤解を招きます。ホスト名ではなく、IPアドレスが必要です。
 
-Start Okapi up on a second machine that is on the same network. Be careful to
-use the proper IP address on the command line. If all goes well, the machines
-should see each other. You can see it in the log on both machines. Now you can
-ask Okapi (any Okapi in the cluster) to list all nodes:
+同じネットワーク上にある2台目のマシンでOkapiを起動します。 
+適切なIPアドレスをコマンドラインで使用するように注意してください。 
+すべてがうまくいけば、マシンはお互いに見えるはずです。
+両方のマシンのログに表示されます。
+これで、Okapi（クラスタ内の任意のOkapi）にすべてのノードをリストするように問い合わせることができます：
 
 ```curl -w '\n' -D - http://localhost:9130/_/discovery/nodes```
 
@@ -2058,19 +2059,19 @@ Content-Length: 186
 } ]
 ```
 
-Note how the nodes have different UUIDs, but the same URL. They both claim to be
-reachable at `http://localhost:9130`. That is true enough, in a very technical
-sense, if you use curl on the node itself, localhost:9130 points to Okapi. But
-that is not very practical if you (or another Okapi) wants to talk to the node
-from somewhere else on the network. The solution is to add another parameter to
-the command line, telling the hostname Okapi should return for itself.
+ノードのUUIDは異なるがURLが同じであることに注意してください。 
+どちらも `http：// localhost：9130`で到達可能であると主張しています。 
+非常に技術的な意味で、ノード自体にcurlを使用すると、localhost：9130がOkapiを指しています。 
+しかし、あなた（または他のOkapi）がネットワーク上の他の場所からノードに向かって話したがっていると、
+これはあまり実用的ではありません。 
+解決策は、コマンドラインに別のパラメータを追加して、Okapiがそれ自身のために返すべきホスト名を伝えることです。
 
-Stop your Okapis, and start them again with a command line like this:
+Okapisを停止し、次のようなコマンドラインでそれらを再起動してください：
 ```
 java -Dhost=tapas -jar okapi-core/target/okapi-core-fat.jar cluster -cluster-host 10.0.0.2
 ```
-Instead of "tapas", use the name of the machine you are starting on, or even the
-IP address. Again, list the nodes:
+「タパス」の代わりに、あなたが始めているマシンの名前、あるいはIPアドレスを使ってください。 
+再度、ノードをリストします。
 
 ```curl -w '\n' -D - http://localhost:9130/_/discovery/nodes```
 
@@ -2088,7 +2089,7 @@ Content-Length: 178
 } ]
 ```
 
-You can verify that the URLs work:
+URLが正常に動作していることを確認できます:
 
 ```curl -w '\n' -D -    http://tapas:9130/_/discovery/nodes```
 
@@ -2105,18 +2106,18 @@ Content-Length: 178
   "url" : "http://tapas:9130"
 } ]
 ```
-#### Naming nodes
+#### ノードの命名
 
-As mentioned, the Hazelcast system allocates UUIDs for the nodeIds. That is all
-fine, but they are clumsy to use, and they change every time you run things, so
-it is not so easy to refer to nodes in your scripts etc. We have added a feature
-to give the node a name on the command line, like this:
+前述したように、HazelcastシステムはnodeIdsにUUIDを割り当てます。 
+それはすべて問題ありませんが、使用するのは面倒です。
+実行するたびに変更されるので、スクリプトなどのノードを参照するのは簡単ではありません。
+コマンドにノード名を付ける機能が追加されました このように：
 ```
 java -Dhost=tapas -Dnodename=MyFirstNode \
   -jar okapi-core/target/okapi-core-fat.jar cluster -cluster-host 10.0.0.2
 ```
 
-If you now list your nodes, you should see something like this:
+ノードをリストすると、次のように表示されます：
 ```curl -w '\n' -D -    http://tapas:9130/_/discovery/nodes```
 
 ```
@@ -2132,112 +2133,97 @@ Content-Length: 120
 } ]
 ```
 
-You can use the name instead of the nodeId in many places, for example
+nodeIdの代わりに、多くの場所でその名前を使うことができます。例えば
 ```curl -w '\n' -D -    http://tapas:9130/_/discovery/nodes/myFirstNode```
 
 
 
 #### So, you have a cluster
+Okapiクラスタは、あなたが以前に見た単一のOkapiとして機能します。 
+ほとんどの目的のために、どのノードに話をしても関係なく、すべての情報を共有します。
+あるノードを介してモジュールを作成し、別のノードを介してテナントを作成し、
+最初のノードを介してそのテナントのモジュールを再度有効にすることができます。
+実行するノードを制御する必要があるので、モジュールを配備する際には少し注意する必要があります。
+上記の単一ノードの例では、展開するnodeIdとして 'localhost'だけを使用していましたが、
+これまで何度も見たUUIDを渡す必要があります。
+モジュールをデプロイした後は、あなたが好きなOkapiを使ってトラフィックをプロキシすることができます。
 
-The Okapi cluster works pretty much as a single Okapi you have seen before. For
-most purposes it does not matter which node you talk to, they share all the
-information. You can try to create a module via one node, a tenant via another,
-and enable the module for that tenant via the first node again. You have to be
-a little bit more careful in deploying modules, since you need to control which
-node to run on. The single-node examples above used just 'localhost' as the
-nodeId to deploy on, instead you need to pass the UUID you have seen so many
-times. After you have deployed a module, you can proxy traffic to it, using
-which ever Okapi you like.
+あなたが知っておくべきいくつかの小さな違いがあります：
+  *インメモリーバックエンドは、クラスター内のすべてのノード間で共有されます。 
+つまり、1つのノードを停止してもう一度起動すると、他のノードと同期され、共有データが認識されます。 
+実行中のすべてのOkapiが終了した場合にのみ、データはメモリから消えます。 
+もちろん、Postgresのバックエンドを使用するとデータが保持されます。
+  * `/ _ / deployment`エンドポイントを使用してモジュールをデプロイできます。 
+これは、実行するノード上で実行する必要があります。 Okapiはそれについて他のノードに通知します。 
+通常、 `/ _ / discovery`エンドポイントを通して展開し、nodeIdを指定する必要があります。
+  * Okapiの起動には少し時間がかかることがあります。
 
-There are some small differences you should be aware of:
- * The in-memory back-end is shared between all nodes in a cluster. That means
-that if you take one node down, and start it again, it will sync with the other
-node, and still be aware of the shared data. Only when all running Okapis are
-taken down, will the data disappear from memory. Of course, using the Postgres
-backend will persist data.
- * You can deploy modules using the `/_/deployment` endpoint. This has to be done
-on the very node you want the thing to run. Okapi will inform other nodes about
-it. Normally you should deploy through the `/_/discovery` endpoint, and specify
-the nodeId.
- * Starting up Okapi can take a bit longer time.
+使用できるクラスタリングモードはさらに2つあります。 
+`配備`は、Okapiをクラスタモードで起動しますが、プロキシを実行することはありません。 
+1つのノードだけが外部から見え、残りのノードはデプロイメントモードで実行できるクラスタでは便利です。
 
-There are two more clustering modes you can use. The `deployment` starts Okapi up
-in cluster mode, but without doing the proxying. That can be useful in a cluster
-where only one node is visible from the outside, the rest could run in deployment
-mode.
+もう一方のモード、 `proxy`はそれと逆です。 
+すべての要求を受け取り、それらを 'デプロイメント'ノードに渡すOkapiノードのためのものです。 
+これは通常、外部から見えるノードです。 この種の分割は、プロキシだけでノードが完全に
+占有されるようなトラフィックが多い場合には意味をなさないようになります。
 
-The other mode, `proxy`, is the reverse of that. It is meant for the Okapi node
-that receives all requests, and passes them on to the 'deployment' nodes. That
-would typically be a node that is visible from outside. This kind of division
-starts to make sense when there is so much traffic that the proxying alone will
-keep a node fully occupied.
+### Okapiのセキュリティ
+
+上記の例では、Okapiにコマンドを実行しただけで、何のチェックもせずにモジュールを喜んで配備して有効にしました。
+本番システムでは、これは受け入れられません。 
+Okapiは簡単にセキュアになるよう設計されています。 
+実際、チェックなしでOkapiを使用できるようにするには、いくつかの小さなハッキングがあります。 
+たとえば、何も指定されていない場合、Okapiはデフォルトで`okapi.supertenant`に設定され、
+このテナントはデフォルトで内部モジュールが有効になっています。
+
+原則として、Okapi自体のセキュリティ確保は、モジュールへのアクセスを確保するのと同じ方法で行われます。
+`okapi.supertenant`の認証チェックフィルタをインストールします。 それは認証されていない人を通しません。
+authサンプルモジュールは少し単純ですが、実際には、さまざまなユーザーなどに異なるアクセス権を処理できるシステムが必要です。
+
+Okapiのセキュリティ確保の詳細は、使用する認証モジュールの性質によって異なります。
+いずれにしても、私たちはすべてをセットアップする前に自分自身をロックしないように注意する必要があります。
+そうすればまたまた入ることができます。 次の行に沿った何か：
+
+ * Okapiが起動すると、internal module、superpertenantが作成され、
+ テナント用のモジュールが有効になります。 すべての操作はチェックなしで可能です。
+ * 管理者は、必要な認証モジュールをインストールしてデプロイします。
+ * 管理者は、認証モジュールの保存先を有効にします。
+ * 管理者は、適切な認証情報とアクセス許可を認証モジュールに送信します。
+ * 管理者がauth-checkフィルタを有効にします。 今は何も許されません。
+ * 管理者は以前に読み込まれた資格情報でログインし、トークンを取得します。
+ * このトークンは、Okapiでのさらなる操作を行う管理者権限を与えます。
 
 
-### Securing Okapi
+ModuleDescriptorは、その関数へのきめ細かなアクセス制御に適した権限を定義します。
+現時点では、ほとんどの読み取り専用操作は誰にでも開かれていますが、
+変更を加える操作には許可が必要です。
 
-In the examples above, we just fired commands to Okapi, and it happily deployed
-and enabled modules for us, without any kind of checking. In a production system
-this is not acceptable. Okapi is designed to be easy to secure. Actually, there
-are several little hacks in place to make it possible to use Okapi without the
-checks, for example the fact that Okapi defaults to the `okapi.supertenant` if
-none is specified, and that this tenant has the internal module enabled by
-default.
 
-In principle, securing Okapi itself is done the same way as securing access to
-any module: Install an auth check filter for the `okapi.supertenant`, and that
-one will not let people in without them having authenticated themselves. The
-auth sample module is a bit simplistic for this -- in real life we would like a
-system that can handle different permissions for different users, etc.
+通常のクライアントがOkapiの管理機能にアクセスする必要がある場合
+（たとえば、使用可能なモジュールの一覧を表示する場合など）、
+内部モジュールを利用できるようにする必要があります。
+もし必要であれば、アドミンユーザーにパーミッションを与えます。
 
-The exact details about securing Okapi will depend on the nature of the auth
-modules used. In any case, we have to be careful not to lock ourself out before
-we have everything set up so that we can get in again. Something along the lines
-of the following:
+### モジュール記述子（ディスクリプタ）の共有
+Okapiのインストールは、モジュール記述子（ディスクリプタ）を共有することができます。 
+「プル」操作では、Okapiプロキシのモジュールを別のOkapiプロキシインスタンスからフェッチできます。
+「プル」という名前は、Git SCMのプル操作に似ているため、ここで使用されています。 
+Okapiがプルするリモートプロキシインスタンス（またはピア）には、モジュールのデプロイを必要としません。
+必要なのは、 `/ _ / proxy / modules`操作が利用可能であることだけです。
+「プル」は、まだ使用できないすべてのモジュール記述子をリモートからインストールします。 
+これは、モジュールの一意の実装を示すはずのモジュール記述子IDに基づいています。
 
- * When Okapi starts up, it creates the internal module, the supertenant, and
-enables the module for the tenant. All operations are possible, without any
-checks.
- * The admin installs and deploys the necessary auth modules.
- * The admin enables the storage ends of the auth module(s).
- * The admin posts suitable credentials and permissions into the auth module(s).
- * The admin enables the auth-check filter. Now nothing is allowed.
- * The admin logs in with the previously loaded credentials, and gets a token.
- * This token gives the admin right to do further operations in Okapi.
+プル操作の場合、Okapiはプル・ディスクリプタを取ります。
+この段階では、リモートインスタンスのURLが含まれます。 
+Okapiの将来のバージョンでは、認証などのために、プル・ディスクリプタにさらに情報を含めることができます。 
+ローカルのOkapiインスタンスのために呼び出されるパスは `/ _ / proxy / pull / modules`です。
 
-The ModuleDescriptor defines suitable permissions for fine-grained access
-control to its functions. At the moment most read-only operations are open to
-anyone, but operations that change things require a permission.
+プル操作は、フェッチされてローカルにインストールされたモジュールの配列を返します。
 
-If regular clients need access to the Okapi admin functions, for example to list
-what modules they have available, the internal module needs to be made available
-for them, and if needed, some permissions assigned to some admin user.
+#### プル操作例
 
-### Module Descriptor Sharing
-
-Okapi installations may share their module descriptors. With a "pull"
-operation the modules for the Okapi proxy can be fetched from another
-Okapi proxy instance. The name "pull" is used here because it is similar
-to Git SCM's pull operation. The remote proxy instance that Okapi pulls from
-(or peer) does not need any modules deployed.
-All that is necessary is that the `/_/proxy/modules` operation is available.
-The pull installs all module descriptors from the remote that are not
-available already. It is based on the module descriptor id, which is
-supposed to represent a unique implementation of a module.
-
-For the pull operation, Okapi takes a Pull Descriptor. At this stage it
-includes the URL the remote instance. Future versions of Okapi may
-include further information in the Pull Descriptor for authentication
-or other. The path to be invoked for the local Okapi instance
-is `/_/proxy/pull/modules`.
-
-The pull operation returns an array of modules that were fetched
-and installed locally.
-
-#### Pull Operation Example
-
-In this example we pull twice. The second pull should be much faster
-than the pull, because all/most modules have already been fetched.
-
+この例では、2回「プル」します。 2番目のプルは、すべての/ほとんどのモジュールがすでにフェッチされているため、
+1回目のプルよりもはるかに高速でなければなりません
 ```
 cat > /tmp/pull.json <<END
 {"urls" : [ "http://folio-registry.aws.indexdata.com:9130" ]}
@@ -2247,28 +2233,28 @@ curl -w '\n' -X POST -d@/tmp/pull.json http://localhost:9130/_/proxy/pull/module
 curl -w '\n' -X POST -d@/tmp/pull.json http://localhost:9130/_/proxy/pull/modules
 ```
 
-### Install modules per tenant
+### テナントごとにモジュールをインストールする
 
-Until now - in this guide - we have installed only a few modules one
-at a time and we were able to track dependencies and ensure that they
-were in order. For example,  the 'test-basic'  required 'test-auth'
-interface that we knew was offered by the 'test-auth' module.
-It is a coincidence that those names match by the way. Not to mention
-that a module may require many interfaces.
+これまでは （このガイドでは）、一度に少数のモジュールしかインストールしていなかったので、
+依存関係を追跡して順番どおりに実行できるようになりました。 
+例えば、'test-basic'が要求した 'test-auth'インターフェースは、私たちが 'test-auth'モジュールによって提供されたと分かっていました。
+それらの名前がこのように一致するのは偶然です。 
+モジュールが多くのインタフェースを必要とすることは言うまでもありません。
 
-Okapi 1.10 and later offers the `/_/proxy/tenant/id/install` call
-to remedy the situation. This call takes one or more modules to
-be enabled/upgraded/disabled and responds with a similar list that
-respects dependencies. For details, refer to the JSON schema
-TenantModuleDescriptorList and the RAML definition in general.
 
-#### Install Operation Example
+Okapi 1.10以降では、状況を改善するために `/ _ / proxy / tenant / id / install`呼び出しを提供しています。 
+この呼び出しは、1つまたは複数のモジュールを有効/アップグレード/無効にし、依存関係を考慮した同様のリストで応答します。 
+詳細は、JSONスキーマTenantModuleDescriptorListとRAMLの一般的な定義を参照してください。
+
+#### インストール操作の例
 
 Suppose we have pulled module descriptors from the remote repo
-(e.g. using [Pull Operation Example](#pull-operation-example) above)
+(e.g. using [プル操作例](#プル操作例) above)
 and now would like to enable `mod-users-bl-2.0.1`
 for our tenant.
 
+リモートrepoからモジュール記述子を取得したと仮定して（e.g. 上記の[プル操作例]（＃プル操作例）を使用）、
+テナントに `mod-users-bl-2.0.1`を有効にしたいとします。
 ```
 cat > /tmp/okapi-tenant.json <<END
 {
@@ -2302,113 +2288,100 @@ curl -w '\n' -X POST -d@/tmp/tmdl.json \
 } ]
 ```
 
-A set of 4 modules was required. This list, of course, may change depending
-on the current set of modules in the remote repository.
+4モジュールのセットが要求されました。 
+もちろん、このリストは、リモートリポジトリのモジュールの現在のセットに応じて変更されることがあります。
 
-For Okapi version 1.11.0 and later the modules may be referred to
-without version. In the example above, we could have used `mod-users-bl`.
-In this case, the latest available module will be picked for action=enable
-and the installed module  will be picked for action=disable.
-Okapi will always respond with the complete - resulting - module IDs.
+Okapiバージョン1.11.0以降では、モジュールはバージョンなしで参照されることがあります。 
+上記の例では、 `mod-users-bl`を使うことができました。
+この場合、最新の利用可能なモジュールが選択され、action = enableになり、
+インストールされたモジュールが選択されてaction = disableになります。 
+Okapiは、結果として得られる完全なIDで常に応答します。
 
-By default all modules are considered for install - whether pre-releases
-or not. For Okapi 1.11.0, it is possible to add filter `preRelease` which
-takes a boolean value. If false, the install will only consider modules
-without pre-release information.
+デフォルトでは、プレリリース版であろうとなかろうと、すべてのモジュールがインストール対象とみなされます。 
+Okapi 1.11.0では、ブール値をとる `preRelease`フィルタを追加することができます。 
+falseの場合、インストールはプレリリース情報のないモジュールのみを考慮します。
 
-### Upgrading modules per tenant
+### テナントごとにモジュールをアップデートする
 
-The upgrade facility consists of a POST request with ignored body
-(should be empty) and a response that is otherwise similar to the
-install facility. The call has the path `/_/proxy/tenant/id/upgrade`.
-Like the install facility, there is a simulate optional parameter, which
-if true will simulate the upgrade. Also the `preRelease` parameter
-is recognized which controls whether module IDs with pre-release info
-should be considered.
+アップグレード機能は、無視されたボディー（空である必要があります）とインストール機能に似た応答を含むPOSTリクエストで構成されます。
+呼び出しは `/ _ / proxy / tenant / id / upgrade`というパスを持ちます。
+インストール機能と同様に、シミュレートのオプション・パラメータがあり、trueの場合はアップグレードをシミュレートします。
+また、 `preRelease`パラメータも認識され、プレリリース情報を持つモジュールIDを考慮すべきかどうかを制御します。
 
-The upgrade facility is part of Okapi version 1.11.0 and later.
+アップグレード機能はOkapiバージョン1.11.0以降の一部です
 
-## Reference
+## 参考
 
-### Okapi program
+### Okapi プログラム
 
-The Okapi program is shipped as a bundled jar (okapi-core-fat.jar). The
-general invocation is:
+Okapiプログラムはバンドルされたjar（okapi-core-fat.jar）として出荷されます。
+一般的な呼び出しは次のとおりです。
 
   `java` [*java-options*] `-jar path/okapi-core-fat.jar` *command* [*options*]
 
-This is a standard Java command line. Of particular interest is
-java-option `-D` which may set properties for the program: see below
-for relevant properties. Okapi itself parses *command* and any
-*options* that follow.
+これは標準のJavaコマンドラインです。 特に興味深いのは、java-option `-D`です。
+プログラムのプロパティを設定することができます。関連するプロパティについては下記を参照してください。
+Okapi自体は*command*と続く*options*を解析します。
 
-#### Java -D options
+#### Java -D オプション
 
-The `-D` option can be used to specify various run-time parameters in
-Okapi. These must be at the beginning of the command line, before the
-`-jar`.
+`-D`オプションは、Okapiでさまざまな実行時パラメータを指定するために使用できます。 
+これらは `-jar`の前のコマンドラインの先頭になければなりません。
 
-* `port`: The port on which Okapi listens. Defaults to 9130
-* `port_start` and `port_end`: The range of ports for modules. Default to
-`port`+1 to `port`+10, normally 9131 to 9141
-* `host`: Hostname to be used in the URLs returned by the deployment service.
-Defaults to `localhost`
-* `nodename`: Node name of this instance. Can be used instead of the
-system-generated UUID (in cluster mode), or `localhost` (in dev mode)
-* `storage`: Defines the storage back end, `postgres`, `mongo` or (the default)
-`inmemory`
-* `loglevel`: The logging level. Defaults to `INFO`; other useful values are
-`DEBUG`, `TRACE`, `WARN` and `ERROR`.
-* `okapiurl`: Tells Okapi its own official URL. This gets passed to the modules
-as X-Okapi-Url header, and the modules can use this to make further requests
-to Okapi. Defaults to `http://localhost:9130` or what ever port specified. There
-should be no trailing slash, but if there happens to be one, Okapi will remove it.
-* `dockerUrl`: Tells the Okapi deployment where the Docker Daemon is. Defaults to
+* `port`: Okapiがリスンするポート。 デフォルトは9130
+* `port_start` and `port_end`: モジュールのポート範囲。 デフォルトは `port` + 1〜` port` + 10、通常は9131〜9141
+* `host`: デプロイメントサービスから返されたURLで使用されるホスト名。デフォルトは `localhost`
+* `nodename`: このインスタンスのノード名。 システム生成のUUIDの代わりに（クラスタモードで）、または `localhost`（devモードで）の代わりに使うことができます。
+* `storage`: ストレージバックエンド、 `postgres`、` mongo`または`inmemory`（デフォルト）を定義します。
+* `loglevel`: ロギングレベル。 デフォルトは `INFO`です。 他の有用な値は `DEBUG`、` TRACE`、 `WARN`と` ERROR`です。
+* `okapiurl`: Okapiに独自の公式URLを伝えます。 これは、X-Okapi-Urlヘッダーとしてモジュールに渡され、モジュールはこれを使用してOkapiにさらにリクエストします。 デフォルトは `http：// localhost：9130`または指定されたポートです。
+後ろにスラッシュはないはずですが、もしあったとしても、オカピはそれを取り除きます。
+* `dockerUrl`: Docker DaemonがどこにあるかをOkapiデプロイメントに伝えます。 デフォルトは 
 `http://localhost:4243`.
-* `postgres_host` : PostgreSQL host. Defaults to `localhost`.
-* `postgres_port` : PostgreSQL port. Defaults to 5432.
-* `postgres_username` : PostgreSQL username. Defaults to `okapi`.
-* `postgres_password`: PostgreSQL password. Defaults to `okapi25`.
-* `postgres_database`: PostgreSQL database. Defaults to `okapi`.
-* `postgres_db_init`: For a value of `1`, Okapi will drop existing PostgreSQL
-database and prepare a new one. A value of `0` (null) will leave it unmodified
-(default).
+* `postgres_host` : PostgreSQLホスト。 デフォルトは `localhost`.
+* `postgres_port` : PostgreSQLポート。デフォルトは 5432.
+* `postgres_username` : PostgreSQLユーザー名。 デフォルトは `okapi`.
+* `postgres_password`: PostgreSQLパスワード。 デフォルトは `okapi25`.
+* `postgres_database`: PostgreSQLデータベース。 Dデフォルトは `okapi`.
+* `postgres_db_init`: 値が`1`の場合、Okapiは既存のPostgreSQLデータベースを削除し、新しいデータベースを作成します。 値が`0`（null）の場合は変更されないままになります（デフォルト）。
 
-#### Command
+#### コマンド
 
-Okapi requires exactly one command to be given. These are:
-* `cluster` for running in clustered mode/production
-* `dev` for running in development, single-node mode
-* `deployment` for deployment only. Clustered mode
-* `proxy` for proxy + discovery. Clustered mode
-* `help` to list command-line options and commands
-* `initdatabase` drop existing data if available and initializes database
-* `purgedatabase` drop existing data and tables
+Okapiはコマンドをひとつだけ与えられる必要があります。 それらは：
+* `cluster` クラスターモード/プロダクションで実行するため
+* `dev` 開発環境で実行するため。シングルノード・モード
+* `deployment` デプロイメント用のみ。 クラスター・モード
+* `proxy` プロキシ + ディスカバリ用。 クラスター・モード
+* `help` コマンドラインオプションとコマンドのリストを表示
+* `initdatabase` 既存のデータがあればドロップし、データベースを初期化する。
+* `purgedatabase` 既存のデータとテーブルをドロップする。
 
-#### Command-line options
+#### コマンドライン・オプション
 
-These options are at the end of the command line:
+これらのオプションは、コマンドラインの最後にあります:
 
-* `-hazelcast-config-cp` _file_ -- Read config from class path
-* `-hazelcast-config-file` _file_ -- Read config from local file
-* `-hazelcast-config-url` _url_ -- Read config from URL
-* `-enable-metrics` -- Enables the sending of various metrics to a Carbon back
-end.
-* `-cluster-host` _ip_ -- Vertx cluster host
-* `-cluster-port` _port_ -- Vertx cluster port
+* `-hazelcast-config-cp` _file_ -- クラスパスからコンフィグを読む
+* `-hazelcast-config-file` _file_ -- ローカルファイルからコンフィグを読む
+* `-hazelcast-config-url` _url_ -- URLからコンフィグを読む
+* `-enable-metrics` -- さまざまなメトリックをCarbonバックエンドに送信できるようにします。
+* `-cluster-host` _ip_ -- Vertx クラスタ　ホスト
+* `-cluster-port` _port_ -- Vertx クラスタ　ポート
 
 
-### Environment Variables
+### 環境変数
 
-Okapi offers a concept: environment variables. These are system-wide
-properties and provides a way to pass information to modules
-during deployment. For example, a module that accesses a database
-will need to know the connection details.
+Okapiは「環境変数」という概念を提供しています。 
+これらはシステム全体のプロパティで、デプロイ中に情報をモジュールに渡す手段を提供します。 
+たとえば、データベースにアクセスするモジュールは接続の詳細を知る必要があります。
 
 At deployment the environment variables are defined for the
 process to be deployed. Note that those can only be passed to modules
 that Okapi manages, e.g. Docker instances and processes. But not
 remote services defined by a URL (which are not deployed anyway).
+
+デプロイメント時には、プロセスをデプロイするための環境変数が定義されています。 
+これらは、Okapiが管理するモジュールにのみ渡すことができます。 
+e.g. ドッカーのインスタンスとプロセス。URLによって定義されたリモートサービスは違います（いずれにしても展開されていない）。
 
 For everything but the deployment-mode, Okapi provides CRU service under
 `/_/env`. The identifier for the service is the name of the variable. It
@@ -2416,85 +2389,76 @@ must not include a slash and may not begin with underscore.
 An environment entity is defined by
 [`EnvEntry.json`](../okapi-core/src/main/raml/EnvEntry.json).
 
-### Web Service
+デプロイメント・モードを除くすべての場合、Okapiは `/ _ / env`の下にCRUサービスを提供します。 
+サービスの識別子は変数の名前です。 スラッシュを含めることはできず、アンダースコアで始めることはできません。
+環境エンティティは[`EnvEntry.json`]（../ okapi-core / src / main / raml / EnvEntry.json）によって定義されます。
 
-The Okapi service requests (all those prefixed with `/_/`) are specified
-in the [RAML](http://raml.org/) syntax.
+### ウェブサービス
 
-  * The top-level file, [okapi.raml](../okapi-core/src/main/raml/okapi.raml)
+Okapiのサービス要求（ `/ _ /`で始まるものすべて）は、[RAML]（http://raml.org/）の構文で指定されています
+
+  * トップレベル・ファイル [okapi.raml](../okapi-core/src/main/raml/okapi.raml)
   * [Directory of RAML and included JSON Schema files](../okapi-core/src/main/raml)
-  * [API reference documentation](http://dev.folio.org/doc/api/) generated from those files
+  * [API reference documentation](http://dev.folio.org/doc/api/)はこれらのファイルから生成されます
 
-### Internal Module
+### 内部モジュール
 
-When Okapi starts up, it has one internal module defined. This provides two
-interfaces: `okapi` and `okapi-proxy`. The 'okapi' interface covers all the
-administrative functions, as defined in the RAML (see above). The `okapi-proxy`
-interface refers to the proxying functions. It can not be defined in the RAML,
-since it depends on what the modules provide. Its main use is that modules can
-depend on it, especially if they require some new proxying functionality. It is
-expected that this interface will remain fairly stable over time.
+Okapiが起動すると、内部モジュールが1つ定義されます。 
+これは `okapi`と` okapi-proxy`の2つのインターフェースを提供します。 
+'okapi'インターフェースは、RAMLで定義されているように（上記を参照）、すべての管理機能をカバーします。
+`okapi-proxy`インターフェースはプロキシ機能を参照します。
+RAMLで定義することはできません。なぜなら、モジュールが提供するものに依存するからです。 
+その主な用途はモジュールがそれに依存することができ、特に新しいプロキシ機能が必要な場合です。 
+このインタフェースは、時間の経過と共にかなり安定していると予想されます。
 
-The internal module was introduced in okapi version 1.9.0, and a fully detailed
-ModuleDescriptor in version 1.10.0.
+内部モジュールは、オカピバージョン1.9.0で、そして完全に詳細なModuleDescriptorはバージョン1.10.0で導入されました。
 
-### Deployment
+### デプロイメント
 
-Deployment is specified by schemas
+デプロイメントはスキーマによって指定されています
 [DeploymentDescriptor.json](../okapi-core/src/main/raml/DeploymentDescriptor.json)
-and [LaunchDescriptor.json](../okapi-core/src/main/raml/LaunchDescriptor.json). The
-LaunchDescriptor can be part of a ModuleDescriptor, or it can be specified in a
-DeploymentDescriptor.
+and [LaunchDescriptor.json](../okapi-core/src/main/raml/LaunchDescriptor.json). 
+LaunchDescriptorはModuleDescriptorの一部でも、DeploymentDescriptorで指定することもできます。
 
-The following methods exist for launching modules:
+モジュールをローンチするには、次の方法があります。
 
-* Process: The `exec` property specifies a process that stays alive and is
-killed (by signal) by Okapi itself.
+* プロセス: `exec` プロパティはaliveで、Okapi自身によって（シグナルによって）killされるプロセスを指定します。
+* コマンド: `cmdlineStart` と `cmdlineStop`プロパティの存在によってトリガーされます。
+`cmdlineStart`はシェルスクリプトで、バックグラウンドでサービスを生成して配置します。
+`cmdlineStop` はシェルスクリプトで、対応するサービスを終了します。
 
-* Commands: Triggered by presence of `cmdlineStart` and `cmdlineStop`
-properties. The `cmdlineStart` is a shell script that spawns and puts
-a service in the background. The `cmdlineStop` is a shell script that
-terminates the corresponding service.
+* ドッカー: `dockerImage`プロパティは、既存のイメージを指定します。
+Okapiはこのイメージに基づいてコンテナを管理します。 
+このオプションは、 `dockerUrl`がHTTP経由でアクセス可能なDocker Daemonを指すことを要求します。 
+デフォルトでは、Okapiはイメージを開始する前にイメージを取得しようとします。 
+これはブール値のプロパティ `dockerPull`で変更することができます。これは、プルの発生を防ぐためにfalseに設定することができます。 Dockerfileの `CMD`ディレクティブは` dockerCMD`プロパティで変更することができます。 
+これは、 `ENTRYPOINT`がモジュールの完全な呼び出しであり、` CMD`がデフォルト設定であるか、好ましくは空であると見なします。
+最後に、プロパティ `dockerArgs`を使用してDocker SDKのcreate-container引数を渡すことができます。 
+これは、 `Hostname`、` DomainName`、 `User`、` AttachStdin`などのキーを持つオブジェクトです。例えば、[v1.26 API]（https://docs.docker.com/engine /api/v1.26）をご覧ください。
 
-* Docker: The `dockerImage` property specifies an existing
-image. Okapi manages a container based on this image. This option
-requires that the `dockerUrl` points to a Docker Daemon accessible via
-HTTP. By default Okapi will attempt to pull the image before starting
-it. This can be changed with boolean property `dockerPull` which
-can be set to false to prevent pull from taking place.
-The Dockerfile's `CMD` directive may be changed with property
-`dockerCMD`. This assumes that `ENTRYPOINT` is the full invocation of
-the module and that `CMD` is either default settings or, preferably,
-empty. Finally, the property `dockerArgs` may be used to pass
-Docker SDK create-container arguments. This is an object with keys
-such as `Hostname`, `DomainName`, `User`, `AttachStdin`, ... See
-for example, the [v1.26 API](https://docs.docker.com/engine/api/v1.26).
+すべてのデプロイメントタイプに対して、環境変数は `env`プロパティを介して渡されるでしょう。
+これは、各環境変数を指定するオブジェクトの配列をとります。 
+各オブジェクトは、それぞれ環境変数nameとvalueのプロパティ `name`と` value`を持っています。
 
-
-For all deployment types, environment variables may be passed via the
-`env` property. This takes an array of objects specifying each
-environment variable. Each object has property `name` and `value` for
-environment variable name and value respectively.
-
-When launching a module, a TCP listening port is assigned. The module
-should be listening on that port after successful deployment (serving
-HTTP requests).  The port is passed as `%p` in the value of properties
-`exec` and `cmdlineStart`. For Docker deployment, Okapi will map the
-exposed port (`EXPOSE`) to the dynamically assigned port.
-
+モジュールをローンチすると、TCPリスニングポートが割り当てられます。
+モジュールは、デプロイが成功した後（HTTPリクエストをサーブする）に、そのポートでリスンするはずです。
+ポートはプロパティ `exec`と` cmdlineStart`の値の中に `％p`として渡されます。 
+Dockerのデプロイメントの場合、Okapiはエクスポーズされたポート（ `EXPOSE`）を動的に割り当てられたポートにマップします。
 It is also possible to refer to an already-launched process (maybe running in your
 development IDE), by POSTing a DeploymentDescriptor to `/_/discovery`, with no nodeId
 and no LaunchDescriptor, but with the URL where the module is running.
 
+nodeIdとLaunchDescriptorなしで、かつモジュールが実行されているURLとともに
+DeploymentDescriptorを `/ _ / discovery`にPOSTすることで、
+既に起動されているプロセス（開発IDEで実行中かもしれません）を参照することもできます。
+
 ### Docker
 
-Okapi uses the [Docker Engine API](https://docs.docker.com/engine/api/) for
-launching modules. The Docker daemon must be listening on a TCP port in
-order for that to work because Okapi does not deal with HTTP over Unix local
-socket. Enabling that for the Docker daemon depends on the host system.
-For systemd based systems, the `/lib/systemd/system/docker.service` must be
-adjusted and the `ExecStart` line should include the `-H` option with a tcp
-listening host+port. For example `-H tcp://127.0.0.1:4243` .
+Okapiはモジュールをローンチするために [Docker Engine API](https://docs.docker.com/engine/api/) を使用します。
+Docker daemonを動かすにはTCP portをリスンしていなくてはなりません。
+なぜなら、OkapiはUnixローカルソケットではHTTPを処理しないからです。
+Dockerデーモンの有効化は、ホストシステムによって異なります。
+システムベースのシステムの場合、 `/lib/systemd/system/docker.service`は調整されなければならず、`ExecStart`行はtcp リスニングホスト+ポートを持つ `-H`オプションを含むべきです。 例） `-H tcp：//127.0.0.1：4243`
 
 ```
 vi /lib/systemd/system/docker.service
@@ -2502,110 +2466,99 @@ systemctl daemon-reload
 systemctl restart docker
 ```
 
-### System Interfaces
+### システムインタフェース
 
-Modules can provide system interfaces, and Okapi can make requests to those in
-some well defined situations. By convention these interfaces have names that
-start with an underscore.
+モジュールはシステムインタフェースを提供することができ、Okapiは明確な状況で要求を行うことができます。 
+慣例により、これらのインタフェースはアンダースコアで始まる名前を持っています。
 
-At the moment we have two system interfaces defined, but in time we may get
-a few more.
+現時点では、2つのシステムインタフェースが定義されていますが、
+時間がたつにつれてさらにいくつかのインタフェースが増える可能性があります。
 
-#### Tenant Interface
+#### テナントインタフェース
 
-If a module provides a system interface called `_tenant`, Okapi invokes that
-interface every time a module gets enabled for a tenant. The request contains
-information about the newly enabled module, and optionally of some module that
-got disabled at the same time, for example when a module is being upgraded. The
-module can use this information to upgrade or initialize its database, and do
-any kind of housekeeping it needs.
+モジュールが `_tenant`というシステムインタフェースを提供する場合、
+Okapiはモジュールがテナントに対して有効になるたびにそのインタフェースを呼び出します。
+このリクエストには、新しく有効になったモジュールに関する情報と、
+モジュールがアップグレード中の場合などには、同じ時に無効になっているモジュールのオプションの情報が含まれています。
+モジュールは、この情報を使用してデータベースをアップグレードまたは初期化し、必要なハウスキーピングを行うことができます。
 
-For the [specifics](#web-service), see under `.../okapi/okapi-core/src/main/raml/raml-util`
-the files `ramls/tenant.raml` and `schemas/moduleInfo.schema`.
-The okapi-test-module
-has a very trivial implementation of this, and the moduleTest shows a module
-Descriptor that defines this interface.
+[詳細](#ウェブサービス)については、`.../okapi/okapi-core/src/main/raml/raml-util`配下のファイル
+`ramls/tenant.raml` と `schemas/moduleInfo.schema`を見てください。
+okapi-test-moduleはこれを非常に簡単に実装しており、
+moduleTestはこのインタフェースを定義するDescriptorモジュールを示しています。
 
-The tenant interface was introduced in version 1.0
+テナント・インタフェースはバージョン1.0で導入されました
 
 #### TenantPermissions Interface
 
-When a module gets enabled for a tenant, Okapi also attempts to locate a
-module that provides the `_tenantPermissions` interface, and invoke that.
-Typically this would be provided by the permission module. It gets a structure
-that contains the module to be enabled, and all the permissionSets from the
-moduleDescriptor. The purpose of this is to load the permissions and permission
-sets into the permission module, so that they can be assigned to users, or used
-in other permission sets.
+モジュールがテナントに対して有効になると、Okapiは `_tenantPermissions`インターフェースを提供するモジュールを探して呼び出そうとします。
+通常、これはパーミッション・モジュールによって提供されるでしょう。 
+これは、有効にするモジュールとmoduleDescriptorのすべてのpermissionSetsを含む構造体を取得します。 
+これは、パーミッションとパーミッション・セットをパーミッション・モジュールにロードしてユーザに割り当てたり、
+他のパーミッション・セットで使用することを目的としています。
 
-Unless you are writing a permission module, you should never need to provide
-this interface.
+パーミッションモジュールを作成している場合を除き、このインタフェースを提供する必要はありません。
 
-The service should be idempotent, since it may get called again, if something
-went wrong with enabling the module. It should start by deleting all permissions
-and permission sets for the named module, and then insert those it received in
-the request. That way it will clean up permissions that may have been introduced
-in some older version of the module, and are no longer used.
+このサービスはべき等であるべきです。というのも、モジュールを有効にする際に何か問題が生じた場合、サービスは再び呼び出される可能性があるためです。
+まず、指定されたモジュールのすべてのアクセス許可とアクセス許可セットを削除し、
+リクエストで受け取ったアクセス許可とアクセス許可セットを挿入する必要があります。 
+そうすれば、古いバージョンのモジュールで導入された可能性のあるパーミッションがクリーンアップされ、使用されなくなります。
 
-For the [specifics](#web-service), see under `.../okapi/okapi-core/src/main/raml/raml-util`
-the files `ramls/tenant.raml` and `schemas/moduleInfo.schema`.
-The okapi-test-header-module
-has a very trivial implementation of this, and the moduleTest shows a module
-Descriptor that defines this interface.
+[詳細](#ウェブサービス)については、 `.../okapi/okapi-core/src/main/raml/raml-util`配下のファイル
+`ramls/tenant.raml` and `schemas/moduleInfo.schema`を見てください。
+okapi-test-header-moduleはこれを非常に簡単に実装しており、
+moduleTestはこのインタフェースを定義するDescriptorモジュールを示しています。
 
-The tenantPermissions interface was introduced in version 1.1
+TenantPermissionsインタフェースは、バージョン1.1で導入されました。
 
 
-### Instrumentation
+### 計装
 
-Okapi pushes instrumentation data to a Carbon/Graphite backend, from which
-they can be shown with something like Grafana. Vert.x pushes some numbers
-automatically, but various parts of Okapi push their own numbers explicitly,
-so we can classify by tenant or module. Individual
-modules may push their own numbers as well, as needed. It is hoped that they
-will use a key naming scheme that is close to what we do in Okapi.
+Okapiは計装データをCarbon / Graphiteバックエンドにプッシュし、
+Grafanaのようなもので表示することができます。 
+Vert.xはいくつかの数値を自動的にプッシュしますが、Okapiのさまざまな部分が明示的に独自の数値をプッシュするので、
+テナントまたはモジュールで分類できます。 個々のモジュールは、必要に応じて独自の番号をプッシュすることもできます。
+私たちがOkapiで行っていることに近いキー命名スキームを使用することが期待されています。
 
-Enabling the metrics via `-enable-metrics` will start sending metrics to `localhost:2003`
+`-enable-metrics`を介してメトリックを有効にすると、` localhost：2003`にメトリックを送信し始めます。
 
-If you add `graphiteHost` as a parameter to your java command,
+ `graphiteHost`をパラメータとしてJavaコマンドに追加した場合、
 e.g.
 `java -DgraphiteHost=graphite.yourdomain.io -jar okapi-core/target/okapi-core-fat.jar dev -enable-metrics`
-then metrics will be sent to `graphite.yourdomain.io`
+メトリクスは `graphite.yourdomain.io`に送られます。
 
-  * `folio.okapi.`_\$HOST_`.proxy.`_\$TENANT_`.`_\$HTTPMETHOD_`.`_\$PATH`_ -- Time for the whole request, including all modules that it ended up invoking.
-  * `folio.okapi.`_\$HOST_`.proxy.`_\$TENANT_`.module.`_\$SRVCID`_ -- Time for one module invocation.
-  * `folio.okapi.`_\$HOST_`.tenants.count` -- Number of tenants known to the system
-  * `folio.okapi.`_\$HOST_`.tenants.`_\$TENANT_`.create` -- Timer on the creation of tenants
-  * `folio.okapi.`_\$HOST_`.tenants.`_\$TENANT_`.update` -- Timer on the updating of tenants
-  * `folio.okapi.`_\$HOST_`.tenants.`_\$TENANT_`.delete` -- Timer on deleting tenants
-  * `folio.okapi.`_\$HOST_`.modules.count` -- Number of modules known to the system
-  * `folio.okapi.`_\$HOST_`.deploy.`_\$SRVCID_`.deploy` -- Timer for deploying a module
-  * `folio.okapi.`_\$HOST_`.deploy.`_\$SRVCID_`.undeploy` -- Timer for undeploying a module
-  * `folio.okapi.`_\$HOST_`.deploy.`_\$SRVCID_`.update` -- Timer for updating a module
+  * `folio.okapi.`_\$HOST_`.proxy.`_\$TENANT_`.`_\$HTTPMETHOD_`.`_\$PATH`_ -- 呼び出しが終了したすべてのモジュールを含む、要求全体の時間
+  * `folio.okapi.`_\$HOST_`.proxy.`_\$TENANT_`.module.`_\$SRVCID`_ -- 1回のモジュール呼び出しの時間
+  * `folio.okapi.`_\$HOST_`.tenants.count` -- システムに認識されているテナントの数
+  * `folio.okapi.`_\$HOST_`.tenants.`_\$TENANT_`.create` -- テナントの作成に関するタイマー
+  * `folio.okapi.`_\$HOST_`.tenants.`_\$TENANT_`.update` -- テナントの更新に関するタイマー
+  * `folio.okapi.`_\$HOST_`.tenants.`_\$TENANT_`.delete` -- テナントの削除に関するタイマー
+  * `folio.okapi.`_\$HOST_`.modules.count` -- システムに認識されているモジュールの数
+  * `folio.okapi.`_\$HOST_`.deploy.`_\$SRVCID_`.deploy` -- モジュールをデプロイするためのタイマー
+  * `folio.okapi.`_\$HOST_`.deploy.`_\$SRVCID_`.undeploy` -- モジュールをアンデプロイするためのタイマー
+  * `folio.okapi.`_\$HOST_`.deploy.`_\$SRVCID_`.update` -- モジュールを更新するためのタイマー
 
-The `$`_NAME_ variables will of course get the actual values.
+もちろん、変数「 `$` _NAME_」は実際の値を取得します。　
 
-There are some examples of Grafana dashboard definitions in
-the `doc` directory:
+`doc`ディレクトリにGrafanaダッシュボード定義のいくつかの例があります：
 
 * [`grafana-main-dashboard.json`](grafana-main-dashboard.json)
 * [`grafana-module-dashboard.json`](grafana-module-dashboard.json)
 * [`grafana-node-dashboard.json`](grafana-node-dashboard.json)
 * [`grafana-tenant-dashboard.json`](grafana-tenant-dashboard.json)
 
-Here are some examples of useful graphs in Grafana. These can be pasted directly under the
-metric, once you change edit mode (the tool menu at the end of the line) to text
-mode.
+Grafanaの便利なグラフの例をいくつか紹介します。 
+これらは、編集モード（行末のツールメニュー）をテキストモードに変更すると、メトリックの下に直接貼り付けることができます。
 
-  * Activity by tenant:
+  * テナントごとのアクティビティ:
 
       `aliasByNode(sumSeriesWithWildcards(stacked(folio.okapi.localhost.proxy.*.*.*.m1_rate, 'stacked'), 5, 6), 4)`
-  * HTTP requests per minute (also for PUT, POST, DELETE, etc)
+  * 毎分のHTTPリクエスト (PUT, POST, DELETE,等もここから)
 
       `alias(folio.okapi.*.vertx.http.servers.*.*.*.*.get-requests.m1_rate, 'GET')`
-  * HTTP return codes (also for 4XX and 5XX codes)
+  * HTTPリターンコード (4XXと5XXコードもここから)
 
       `alias(folio.okapi.*.vertx.http.servers.*.*.*.*.responses-2xx.m1_rate, '2XX OK')`
-  * Modules invoked by a given tenant
+  * 任意のテナントによって呼び出されたモジュール
 
       `aliasByNode(sumSeriesWithWildcards(folio.okapi.localhost.SOMETENANT.other.*.*.m1_rate, 5),5)`
