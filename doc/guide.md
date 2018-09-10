@@ -4,45 +4,45 @@
 Okapiのガイドとリファレンスです。
 
 <!-- `make guide-toc.md`を実行し、その出力をここに含めて、必要に応じてこれを再生成します -->
-* [Introduction](#introduction)
-* [Architecture](#architecture)
-    * [Okapi's own Web Services](#okapis-own-web-services)
-    * [Deployment and Discovery](#deployment-and-discovery)
-    * [Request Processing](#request-processing)
-    * [Status Codes](#status-codes)
-    * [Header Merging Rules](#header-merging-rules)
-    * [Versioning and Dependencies](#versioning-and-dependencies)
-    * [Security](#security)
+* [イントロ](#イントロ)
+* [アーキテクチャ](#アーキテクチャ)
+    * [Okapiのウェブサービス](#Okapiのウェブサービス)
+    * [デプロイとディスカバリ](#デプロイとディスカバリ)
+    * [リクエスト処理](#リクエスト処理)
+    * [ステータスコード](#ステータスコード)
+    * [ヘッダー・マージ・ルール](#ヘッダー・マージ・ルール)
+    * [バージョンと依存関係](#バージョンと依存関係)
+    * [セキュリティ](#セキュリティ)
     * [Open Issues](#open-issues)
-* [Implementation](#implementation)
+* [実装](#実装)
     * [Missing features](#missing-features)
-* [Compiling and Running](#compiling-and-running)
-* [Using Okapi](#using-okapi)
-    * [Storage](#storage)
-    * [Curl examples](#curl-examples)
-    * [Example modules](#example-modules)
-    * [Running Okapi itself](#running-okapi-itself)
-    * [Example 1: Deploying and using a simple module](#example-1-deploying-and-using-a-simple-module)
-    * [Example 2: Adding the Auth module](#example-2-adding-the-auth-module)
-    * [Example 3: Upgrading, versions, environment, and the `_tenant` interface](#example-3-upgrading-versions-environment-and-the-tenant-interface)
-    * [Example 4: Complete ModuleDescriptor](#example-4-complete-moduledescriptor)
-    * [Multiple interfaces](#multiple-interfaces)
-    * [Cleaning up](#cleaning-up)
-    * [Running in cluster mode](#running-in-cluster-mode)
-    * [Securing Okapi](#securing-okapi)
-    * [Module Descriptor Sharing](#module-descriptor-sharing)
-    * [Install modules per tenant](#install-modules-per-tenant)
-    * [Upgrading modules per tenant](#upgrading-modules-per-tenant)
-* [Reference](#reference)
-    * [Okapi program](#okapi-program)
-    * [Environment Variables](#environment-variables)
-    * [Web Service](#web-service)
-    * [Internal Module](#internal-module)
-    * [Deployment](#deployment)
+* [コンパイルと実行](#コンパイルと実行)
+* [Okapiの利用](#Okapiの利用)
+    * [ストレージ](#ストレージ)
+    * [Curl例](#Curl例)
+    * [モジュール例](#モジュール例)
+    * [Okapi自身を実行する](#Okapi自身を実行する)
+    * [例1: 簡単なモジュールをデプロイして利用する](#例1: 簡単なモジュールをデプロイして利用する)
+    * [例2: Authモジュールを追加する](#例2: Authモジュールを追加する)
+    * [例3: アップグレード、バージョン、環境、`_tenant` インタフェース](#例3: アップグレード、バージョン、環境、`_tenant` インタフェース)
+    * [例4: ModuleDescriptorを完成させる](#例4: ModuleDescriptorを完成させる)
+    * [複数のインタフェース](#複数のインタフェース)
+    * [クリーンアップ](#クリーンアップ)
+    * [ラスタモードで実行](#ラスタモードで実行)
+    * [Okapiのセキュリティ](#Okapiのセキュリティ)
+    * [モジュール記述子（ディスクリプタ）の共有](#モジュール記述子（ディスクリプタ）の共有)
+    * [テナントごとにモジュールをインストールする](#テナントごとにモジュールをインストールする)
+    * [テナントごとにモジュールをアップデートする](#テナントごとにモジュールをアップデートする)
+* [参考](#参考)
+    * [Okapiプログラム](#Okapiプログラム)
+    * [環境変数](#環境変数)
+    * [ウェブサービス](#ウェブサービス)
+    * [内部モジュール](#内部モジュール)
+    * [デプロイメント](#デプロイメント)
     * [Docker](#docker)
-    * [System Interfaces](#system-interfaces)
+    * [システムインタフェース](#システムインタフェース)
 
-## Introduction
+## イントロ
 
 この文書では、Okapiに関連する以下の概念の概要を提供することを目的としています。
 
@@ -81,7 +81,7 @@ OkapiコアWebサービスをコールすることで、新しいサービス（
 オンデマンドでサービスまたはサービス・グループ（「アプリケーション」）を有効または無効にすることができます。
 
 
-## Architecture
+## アーキテクチャ
 
 OkapiのWebサービス・エンドポイントは、おおよそ2つに分けられます：
 （1）時に「コア」と呼ばれる一般モジュールとテナント管理API - 当初はOkapi自体の一部でしたが、独立したサービスになるかもしれません
@@ -100,7 +100,7 @@ OkapiのWebサービス・エンドポイントは、おおよそ2つに分け�
 非HTTPを統合する能力）に関して、トランスポートプロトコルのアサンプションは解除されるか、回避されることが思い描かれています。
 
 
-### Okapi's own Web Services
+### Okapiのウェブサービス
 
 前述のように、Okapi独自のWebサービスはモジュールの設定、構成、有効化、テナントの管理のための基本的な機能を提供します。 
 コア・エンドポイントは次のとおりです。
@@ -139,7 +139,7 @@ Okapi内部のWebサービスへのルーティングを区別するために利
 
 ![Module Management Diagram](module_management.png "Module Management Diagram")
 
-#### What are 'modules'?
+#### 「モジュール」とは？
 
 Okapiエコシステム内のモジュールは、コンテンツよりもふるまい（つまり、_interface contract_の観点から定義されます。
 パッケージまたはアーカイブとしてのモジュールの正確な定義がないことを意味しています。
@@ -186,7 +186,7 @@ Okapiのサーバー側モジュールは、あらゆるテクノロジー・ス
 Dockerイメージを使用して、中央から実行可能ファイルを配布します。
 
 
-#### API guidelines
+#### APIガイドライン
 
 Okapiの独自のWebサービスは必須で、その他のモジュールは推奨として、
 実際に可能な限りこれらのガイドラインに準拠する必要があります。
@@ -206,7 +206,7 @@ Okapiの独自のWebサービスは必須で、その他のモジュールは推
 SP管理者の認可と認証の詳細は後の段階で定義されるべきであり、
 特定のサービスプロバイダの認証システムにフックできる外部モジュールによって提供される可能性が高いです。
 
-### Deployment and Discovery
+### デプロイとディスカバリ
 
 複数のステップからなるプロセスによって、テナントがモジュールを利用できるようになります。
 いくつかの異なる方法で実行されますが、最も一般的なプロセスは次のとおりです:
@@ -258,7 +258,7 @@ DeploymentDescriptorを`/_/discovery`にPOSTし、LaunchDescriptorの代わり�
 
 対照的に、 `/ _ / proxy`にPOSTされたModuleDescriptorsは、データベースに保持されます。
 
-### Request Processing
+### リクエスト処理
 
 モジュールはリクエストを処理する2つの方法としてハンドラとフィルタを宣言することができます。
 それぞれのパスに対して正確に1つのハンドラが必要です。 それは デフォルトでは`リクエスト - レスポンス`
@@ -336,7 +336,7 @@ Okapiには、モジュールが例外的にX-Okapi-Stopヘッダーを返す機
 <a id="chunked"/>OkapiはHTTP 1.0、HTTP 1.1のどちらのリクエストも受け付けますが、
 モジュールにコネクションを作るためにチャンク・エンコーディングにはHTTP 1.1を使います。
 
-### Status Codes
+### ステータスコード
 パイプラインの継続または終了は、
 実行されたモジュールによって返されたステータスコードによって制御されます。
 標準[HTTPステータスコード](https://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html) 
@@ -355,7 +355,7 @@ Okapiには、モジュールが例外的にX-Okapi-Stopヘッダーを返す機
 この範囲のコードがモジュールによって返された場合、Okapiは直ちにチェーン全体を終了し、
 コードを呼び出し元に返します。
 
-### Header Merging Rules
+### ヘッダー・マージ・ルール
 
 Okapiは、前のモジュールからのレスポンスを、パイプライン内の次のモジュールにフォワードします
 （例えば、追加のフィルタリングや処理のため）。
@@ -388,7 +388,7 @@ Okapiは、どのモジュールに対するリクエストであっても、常
 このURLは、Okapiの起動時にコマンドラインで指定することができ、
 複数のOkapiインスタンスの前にあるロードバランサを指し示すことができます。
 
-### Versioning and Dependencies
+### バージョンと依存関係
 
 モジュールは1つ以上のインタフェースを提供し、他のモジュールが提供するインタフェースを使用することができます。 
 インターフェイスにはバージョンがあり、依存関係には特定のバージョンのインターフェイスが必要な場合があります。 
@@ -446,7 +446,7 @@ Okapiは、同じIDを持つすべてのモジュールが実際には同じソ�
 詳しい説明を見る
 [Version numbers](http://dev.folio.org/community/contrib-code#version-numbers).
 
-### Security
+### セキュリティ
 
 セキュリティに関する議論のほとんどは、独自の文書に移行されており、
 [Okapi Security Model](security.md).
@@ -525,7 +525,7 @@ HTTPはリクエスト - レスポンスパラダイムに基づいており、�
 例えば、ポーリング手法やWebSocketのようなHTTP拡張機能を使用します。 
 今後のOkapiのリリースでは、非同期アプローチを深く検討し、いくつかのオープンメッセージングプロトコル（STOMPなど）をサポートする予定です。
 
-## Implementation
+## 実装
 
 私たちは、Okapiの基本的な実装を行っています。 以下の例は、現在の実装で動作するはずです。
 
@@ -533,7 +533,7 @@ HTTPはリクエスト - レスポンスパラダイムに基づいており、�
 
  この時点では、大きなものはありません。
 
-## Compiling and Running
+## コンパイルと実行
 
 最新のソフトウェアのソースは、次の場所にあります。
 [GitHub](https://github.com/folio-org/okapi).
@@ -615,14 +615,14 @@ mvn exec:exec@debug
 
 クラスタで実行する場合、下記の [Cluster](#running-in-cluster-mode)の例を参照してください。
 
-## Using Okapi
+## Okapiの利用
 
 これらの例は、 `curl` HTTPクライアントを使用して、コマンドラインからOkapiを使用する方法を示しています。 
 このドキュメントのコマンドラインにコマンドをコピーして貼り付けることができるはずです。
 
 サービスの正確な定義は、[Reference]（＃web-service）セクションに記載されているRAMLファイルにあります。
 
-### Storage
+### ストレージ
 Okapiは内部のイン・メモリ・モックストレージをデフォルトにしているため、その下にデータベースレイヤーがなくても実行できます。
 これは開発やテストでは問題ありませんが、実際には、あるデータをある呼び出しから次の呼び出しまで持続させることが必要です。 
 現在、MongoDBとPostgreSQLストレージは、Okapiを起動するコマンドラインにそれぞれ `-Dstorage = mongo`と
@@ -660,7 +660,7 @@ psql -U okapi postgresql://localhost:5432/okapi
 ```
 
 
-### Curl examples
+### Curl例
 
 次のセクションの例は、コマンドライン・コンソールに貼り付けることができます。
 
@@ -684,7 +684,7 @@ perl -n -e 'print if /^curl /../http/; ' guide.md |
 これにより、DELETEコマンドのクリーンアップが明示的に省略されているため、
 Okapiはいくつかの既知のテナントに対して少数のモジュールが有効になっている明確な状態になります。
 
-### Example modules
+### モジュール例
 
 Okapiはすべてモジュールを呼び出すことに関するものなので、いくつか試してみる必要があります。
 別のものを示す3つのダミーモジュールが付属しています。
@@ -788,7 +788,7 @@ Okapi自体は認証を行いません。モジュールに委譲します。
 私たちは、Okapi自身をいじる際の事例を見ていきます。 
 必要に応じて、okapi-test-moduleと同様にモジュールを直接検証できます。
 
-### Running Okapi itself
+### Okapi自身を実行する
 
 今、私たちはOkapiを開始する準備が整いました。
 注：この例を実行するには、Okapiのカレント・ディレクトリが
@@ -847,7 +847,7 @@ Content-Length: 117
 } ]
 ```
 
-### Example 1: Deploying and using a simple module
+### 例1: 簡単なモジュールをデプロイして利用する
 
 だから私たちはいくつかのモジュールで作業したいとOkapiに伝える必要があります。 
 実際には、これらの操作は適切に許可された管理者によって実行されます。
@@ -1144,7 +1144,7 @@ It works!
 invokeエンドポイントがOkapi 1.7.0で追加されました。
 
 
-### Example 2: Adding the Auth module
+### 例2: Authモジュールを追加する
 
 前の例は、テナントIDを推測することができまする人には誰にでも有効です。 
 これは小さなテストモジュールでは問題ありませんが、実際のモジュールが実際に動作する場合、
@@ -1391,7 +1391,7 @@ curl -w '\n' -X POST -D - \
 ```
 モジュールは同じJSONで応答しますが、文字列には "Hello"が付加されます。
 
-### Example 3: Upgrading, versions, environment, and the `_tenant` interface
+### 例3: アップグレード、バージョン、環境、`_tenant` インタフェース
 
 アップグレードはしばしば問題になることがあります。 
 Okapiではなおさらです。
@@ -1563,7 +1563,7 @@ Hi there { "foo":"bar"}
 
 確かに、 "Hello"ではなく "Hi there"と表示され、X-Okapi-Traceは要求がモジュールの改良版に送られたことを示しています。
 
-### Example 4: Complete ModuleDescriptor
+### 例4: ModuleDescriptorを完成させる
 
 この例では、完全なModuleDescriptorを色々とオプションをつけて表示します。 
 今までに、これを使う方法を知っているはずですので、 `curl`コマンドをすべて繰り返す必要はありません。
@@ -1728,7 +1728,7 @@ permissionモジュールはそれを行うべきもので、そのようにperm
 完全な最新の定義については、[Reference](#web-service)）セクションのRAMLとJSONのスキーマを常に参照してください。
 
 
-### Multiple interfaces
+### 複数のインタフェース
 
 通常、Okapiプロキシは所定のインタフェースを提供するのにただ一つのモジュールを許可します。
 `provide`セクションで`interfaceType` `multiple`を使うことで、任意の数のモジュールが同じインターフェースを実装することができます。
@@ -1940,7 +1940,7 @@ Content-Length: 0
 <!-- STOP-EXAMPLE-RUN -->
 最後に、実行していたOkapiインスタンスを単純な `Ctrl-C`コマンドで停止することができます。
 
-### Running in cluster mode
+### クラスタモードで実行
 
 今のところすべての例は、単一のマシン上で `dev`モードで実行されています。 
 これはのデモンストレーション、開発などには適していますが、
@@ -2253,7 +2253,7 @@ Suppose we have pulled module descriptors from the remote repo
 and now would like to enable `mod-users-bl-2.0.1`
 for our tenant.
 
-リモートrepoからモジュール記述子を取得したと仮定して（e.g. 上記の[プル操作例]（＃プル操作例）を使用）、
+リモートrepoからモジュール記述子を取得したと仮定して（e.g. 上記の[プル操作例](#プル操作例)を使用）、
 テナントに `mod-users-bl-2.0.1`を有効にしたいとします。
 ```
 cat > /tmp/okapi-tenant.json <<END
@@ -2312,7 +2312,7 @@ falseの場合、インストールはプレリリース情報のないモジュ
 
 ## 参考
 
-### Okapi プログラム
+### Okapiプログラム
 
 Okapiプログラムはバンドルされたjar（okapi-core-fat.jar）として出荷されます。
 一般的な呼び出しは次のとおりです。
